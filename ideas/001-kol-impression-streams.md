@@ -102,3 +102,8 @@ Projects fund a campaign. KOLs post on X and get paid **in real time, per verifi
 - **Which stablecoin:** USDC (native Circle support on Monad) or AUSD (largest on Monad, Agora bounty).
 - **Does CRE support Monad as a write target?** Not confirmed. Check the docs; fall back to a keeper.
 - **Pilot:** which real project and KOLs could run a live campaign during the build?
+
+---
+
+## Sponsor integrations (Monad Metropolis)
+See the sponsor-by-sponsor fit table in [`hackathons/2026-10-monad-metropolis/SPONSORS.md` §14](../hackathons/2026-10-monad-metropolis/SPONSORS.md#14-fit-with-our-ideas).

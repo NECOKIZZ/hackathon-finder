@@ -90,3 +90,8 @@
   - Fine for a hackathon; a real product needs a licensed partner. Busha itself would be the obvious one.
 - **Off-hours pricing.** Stock tokens trade thin and wide when US markets are closed. Show the "buy at 2 am Sunday" price honestly, or use limit orders.
 - **Naira on-ramp partner** for a real launch: Busha, Yellow Card or others.
+
+---
+
+## Sponsor integrations (Monad Metropolis)
+See the sponsor-by-sponsor fit table in [`hackathons/2026-10-monad-metropolis/SPONSORS.md` §14](../hackathons/2026-10-monad-metropolis/SPONSORS.md#14-fit-with-our-ideas).
