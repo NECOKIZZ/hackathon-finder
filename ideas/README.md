@@ -10,6 +10,7 @@ Full hackathon mapping: [`hackathons/2026-10-october-list/MAPPING.md`](../hackat
 |---|---|---|---|---|
 | [001](001-kol-impression-streams.md) | KOL Impression Streams | Projects pay KOLs in a real-time stream, priced per verified X impression | Captured | Monad Metropolis (Track 03 + bounties) 🟢 · Qloo 🟡 · PayPal+AI 🟡 · Colosseum Tempo track 🟡 |
 | [002](002-busha-for-stocks.md) | Busha for Stocks | Buy US stocks with naira in seconds, 24/7, self-custodied | Captured | **BNB Hack: Tokenized Stocks 🟢🟢** · Monad Metropolis (Agora + Kuru bounties) 🟡 |
+| [003](003-tokenized-stocks-bank.md) | Tokenized-stocks bank (weekend gap) | Monday Open Markets, weekend spread engine, Ethena-for-stocks + more. [Feedback](003-feedback.md) | Captured + reviewed | A → Colosseum Robinhood 🟢 · B → BNB Tokenized Stocks 🟡 · C → Hyperliquid (later) |
 | — | Cuerate on Monad (curator rewards) | Early likers earn when a post takes off. A paid-curation feed | Candidate | Monad Metropolis: Track 03 |
 | — | Kickoff on Monad (on-chain settlement + in-play) | Fully on-chain proximity markets with per-block in-play pricing | Candidate | **Kickoff as-is → Colosseum Robinhood Chain track 🟢🟢** · Monad Metropolis Track 01 🟡 |
 
