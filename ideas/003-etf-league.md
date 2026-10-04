@@ -50,3 +50,37 @@ Build your own ETF from tokenized stocks, add a ticket, and compete weekly on gr
 - **Our own token:** may look like a cash grab to hackathon judges, and a token whose value comes from a prize game can be treated as a security. Use an S&P ticket for the hackathon and get legal advice before launching a token.
 - **It's still a game with money on it.** The ticket is small and separate from holdings, but a real launch needs legal advice.
 - Check Ondo's existing ETF tokens so we don't rebuild something it already sells.
+
+## 8. Prior art: EARN on Robinhood Chain (earnonhood.com/etfs), checked 2026-10-05
+- **What it is:** a self-deployed **Balancer V3** (vault `0x2808…69EB`, not Balancer's official vault) on Robinhood Chain (chain 4663).
+  - Each "ETF" is a **weighted pool**: your share = your liquidity position, earning 0.3% swap fees.
+  - A **launcher** lets anyone create a basket (e.g. user-made "Leaders": GOOGL / SPCX / META / NVDA).
+  - Their own footer: "'ETF' is product branding, not a regulated exchange-traded fund."
+- **Their token-in-every-basket trick:** the **EARN token sits in almost every basket** (EARN ETF = SPY / QQQ / WETH / EARN; EARN AI = NVDA / TSM / MU / WETH / EARN; …). That's our "you must buy our token" idea, proven live.
+- **Caveats:**
+  - Fixed-weight pools **auto-rebalance** (sell winners, buy losers), so they behave differently from holding the stocks.
+  - Pools are small (EARN ETF ≈ 1 SPY + 1 QQQ). DefiLlama shows ≈ $375k TVL across all EARN products.
+- **No public repo found.** Balancer V3 itself is open source (GPL-3.0).
+
+## 9. Plan B: build the league on top of EARN (no exchange to build)
+**The clock, not listings, drives the game.** It runs every week. Any EARN basket can enter: EARN's own, community-made, or one the player creates with EARN's launcher. New listings simply join the next round.
+
+**Weekly round**
+1. **Start:** Monday at US market open (13:30 UTC). Starting at market open means stock prices have a real reference, so nobody can game the weekend gap.
+2. **Enter:**
+   - **Investor mode:** lock your EARN basket shares into the league contract for the week. They keep earning swap fees inside the pool, and you get them back at the end.
+   - **Player mode:** just pick a basket without holding it.
+   - Either way, buy a **ticket** (USDG, or the EARN token if we partner with them).
+3. **Score:** % change in the basket's **value per share** from start to end. This includes the swap fees it earned, so busy baskets get a bonus.
+4. **End:** next Monday at market open. The top half split the ticket pot (Kickoff's weighted payout: the best get the most). Investors also get their shares back.
+5. **Leaderboards:** best investors, and best basket creators (whose baskets did best, and how many people played them).
+
+**Keeping it fair**
+- **Value baskets with trusted prices**, not the pool's own prices. Otherwise someone could pump a thin coin in their basket.
+- **Only allow league-eligible baskets:** stock tokens + WETH + USDG + EARN, above a minimum liquidity. No memecoin baskets.
+- **Snapshot with averages** around start and end (time-weighted), not a single block.
+- **Investor mode requires locked shares,** so nobody can borrow shares for the snapshot.
+
+**Why EARN would like it:** the league sends players and trading volume (fees) to their pools. Pitch them to sponsor the prize pot or use EARN as the ticket.
+
+**Fit:** Colosseum Robinhood Chain track (12 Oct). Competes with Kickoff for the one submission, unless it ships as a Kickoff feature ("Kickoff ETF League").
