@@ -75,7 +75,16 @@ Even exchanges can't easily prove reserves of shielded ZEC. Today's options are 
 
 **Fallback:** if step 3 stalls, submit ownership + amount + indexer, and present "unspent" as the next milestone.
 
-## 7. Open questions
+## 7. Lessons from WhisperScore (Midnight, similar "prove a threshold" project)
+- **Their weakness is our pitch:** WhisperScore proves facts about balances the *user types in* (its README only mentions checking for negative numbers). Our proof runs on Zcash's own chain data, so nothing can be faked. Make this a slide.
+- **Use fixed tiers, not any X.** If a verifier can ask "≥ 1,000? ≥ 1,500? ≥ 1,250?" again and again, they can binary-search your exact balance. Prove fixed public tiers (e.g. 100 / 1,000 / 10,000) and limit proofs per challenge period. WhisperScore's Bronze/Silver/Gold tiers point the same way.
+- **Copy the privacy write-up format:** three lists: *public* / *private* / *proven without revealing*, plus a "security assumptions" section. Zecathon's top criterion is privacy, so this is how judges check it.
+- **Value bounds in the circuit:** they cap values to stop number wraparound. We need range checks on note values and the threshold comparison.
+- **Prover UX:** show progress and lock the button while the proof generates (it takes time).
+- **CI that compiles the circuit and runs the cheat tests on every push.**
+- **Evidence of real users:** a short user list and a feedback log.
+
+## 8. Open questions
 - How many Orchard nullifiers exist (sets the indexed tree's size and indexing time)?
 - Chain data access from the build environment (lightwalletd / Zebra)?
 - Which `orchard` circuit pieces are private and need adapting (credit them)?
