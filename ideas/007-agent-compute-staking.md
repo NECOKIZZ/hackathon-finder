@@ -17,6 +17,7 @@ Agents visit a site, buy our token, stake it, and earn **compute credits streame
 4. **It already exists.**
    - **Venice (VVV):** staking gives a pro-rata daily share of Venice's API inference capacity (since Jan 2025). Since Aug 2025, **DIEM** = $1/day of inference forever, minted by locking staked VVV.
    - **Morpheus (MOR):** holders get a share of network compute daily.
+   - **NEAR AI Stake-to-Compute:** the staking rewards from staked NEAR are routed to NEAR AI and turned into compute credits. About 500 NEAR staked earns about $5/month of credits, a 100:1 ratio. A 50 NEAR stake activates an IronClaw agent. Runs in TEEs. **This is design B below, already live on NEAR.**
    - We need a sharp angle, not a copy.
 5. **Who supplies the compute, and which models?** Agents want frontier models. Reselling commercial API access may break provider terms. Open-weight models on rented GPUs are cheaper but weaker.
 6. **Regulation.** A token sold with a "yield" pitch looks like a security.
