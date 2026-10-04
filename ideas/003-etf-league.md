@@ -1,100 +1,72 @@
-# 003 — ETF League (build your own ETF, win everyone's tickets)
+# 003 — ETF League ("Stake $5 on your ETF")
 
-**Status:** Captured · **Captured:** 2026-10-04 · **Origin:** Neco (refined in discussion)
+**Status:** Captured · refined 2026-10-05 · **Origin:** Neco
 **Working name:** TBD
 
 ---
 
 ## 1. One-liner
-Build your own ETF from tokenized stocks, add a ticket, and compete weekly on growth. Your stocks stay 100% yours. The best investors win everyone's tickets.
+Hold an on-chain ETF and you already earn trading fees. **Lock a fixed $5 of the stake token next to it**, and if your ETF beats the bottom half this week, you win their $5s.
 
-## 2. Problem
-- Tokenized stocks are now widely available (709 on BNB Chain alone, often in three brands: Ondo, xStocks, bStocks). Holding them is passive and lonely: nothing rewards you for picking well.
-- Prediction games reward skill but force you into bets, not ownership.
-- Curated baskets and ETFs already exist (e.g. an S&P 500 token), but you can't make your own and show you're good at it.
+## 2. Core mechanic (Neco's design)
+- **An ETF** = a basket of tokens (e.g. 4 stocks + the platform token). Holders earn trading fees just by holding (as on EARN).
+- **The stake:** to enter the weekly round, lock a **fixed $5** worth of the stake token (EARN, or our own token later) in a **separate escrow**, alongside your ETF.
+- **The round:**
+  - ETFs are ranked by the growth of the **picked stocks only** (stake token, WETH and stablecoins excluded from the score).
+  - **Top half:** get their $5 back plus a share of the bottom half's stakes. Better rank = bigger share (Kickoff's weighted payout, not winner-takes-all).
+  - **Bottom half:** lose their $5 stake. Their ETF holdings and fees are never touched.
+- **Why a fixed $5:** everyone risks the same, so whales can't buy wins. Scoring by % growth means a $50 holder can beat a $50,000 holder.
 
-## 3. How it works
-**Investors**
-1. Build an ETF: pick stocks and weights, fund it. A vault buys the real stock tokens and issues you one ETF token. You can redeem for the underlying stocks at any time.
-2. Add a **ticket** to enter the weekly league. The ticket is a separate stake; your stocks are never at risk.
-3. At week's end, ETFs are ranked by **growth of the stock part only**. The ticket is excluded from the score so its price can't distort the rankings.
-4. **The top half / top 10 split all tickets, with the best getting the biggest share** (Kickoff's median-gate and accuracy-weighted payout). Not winner-takes-all, which would reward all-in gambles.
+## 3. Upgrades that make it more interesting
+1. **Back an ETF.**
+   - Anyone can lock $5 behind someone else's ETF without holding it.
+   - Backers win or lose with that ETF.
+   - **Creators earn 10% of their backers' winnings.**
+   - "Back my ETF" links are made for sharing on X, which makes this the viral loop.
+2. **Streaks.** Every consecutive top-half week adds a small bonus (paid from the season pot). ETFs with long streaks become famous, and backers pile in.
+3. **Duels.** Challenge another ETF one-on-one for $5: "My AI basket vs your Aerospace basket this week." Easy to share, easy to understand.
+4. **Survivor season.** Over a season (e.g. 8 weeks), the bottom half are knocked out of the survivor table each week (they can keep playing normal rounds). The last ETFs standing win the **season pot**.
+5. **Beat-the-market bonus.** ETFs that beat SPY that week get an extra slice. Picking well has to mean beating the index, not just beating other players.
 
-**Players** (people who don't want to hold stocks)
-- Make predictions instead (e.g. "where will Tesla open Monday?", "pick this week's 5 winners"). Pay the same ticket, win tickets.
-- One shared leaderboard ranks everyone by how good their calls are, whichever way they play.
+## 4. Fairness rules
+- **Lock window:** stakes are locked from Monday's US market open to next Monday's open (real price anchors, no weekend-gap games).
+- **Snapshot prices with time-weighted averages** around start and end, using trusted stock prices, not the pool's own prices.
+- **Eligibility:**
+  - minimum ETF size and liquidity;
+  - stock tokens + majors only (no memecoin baskets);
+  - the holder must have held the ETF for the whole week.
+- **Spamming many ETFs doesn't pay:** spreading $5s across 10 random ETFs averages out to losing the platform fee. Leaderboards use season-long records, so luck doesn't look like skill.
 
-**The ticket asset (swappable by design)**
-- **Hackathon:** a stock token itself, e.g. an S&P 500 token. Losers' S&P tokens go to winners: stocks stay central and winners earn more stock.
-- **Later:** our own token. Every ETF needs it (steady demand), and owning its trading pool earns us trading fees.
-- USDC also works as a fallback.
+## 5. How we make money
+- **10% of the bottom half's stakes** (e.g. 5% to us, 5% to the season pot).
+- **Stake-token demand:** every entry, backing and duel needs the token. With our own token, we earn its trading fees.
+- **Sponsorship:** the platform (e.g. EARN) funds pots, because the league sends holders to its pools.
 
-## 4. Why on-chain
-- Real stock tokens are owned and redeemable in the user's own wallet. A vault anyone can verify holds the basket.
-- Trading is 24/7 and payouts settle instantly.
-- Weekend pricing is honest: show ETF value as a range while markets are closed.
+**Example:** 200 ETFs enter × $5 = $1,000. The bottom 100 lose $500. 10% = $50 (us $25, season pot $25). The top 100 split $450, weighted by rank. Backers and duels multiply the volume.
 
-## 5. Hackathon fit
+## 6. Where it runs
+- **On top of EARN (Robinhood Chain):** EARN already has the ETFs and the fee-earning (see §7). We only build the stake escrow, scoring and league. EARN as the stake token aligns us with them, so pitch them to sponsor.
+- **Our own version elsewhere** (e.g. BNB Chain with Ondo / xStocks / bStocks): only if we also build the ETF layer. Note the BNB Hack rules require trades to go through PancakeSwap.
+
+## 7. Prior art: EARN on Robinhood Chain (earnonhood.com/etfs), checked 2026-10-05
+- **What it is:** a self-deployed **Balancer V3** on Robinhood Chain (chain 4663; vault `0x2808…69EB`, not Balancer's official vault).
+  - Each "ETF" is a weighted pool. Shares = liquidity position, earning 0.3% swap fees.
+  - A launcher lets anyone create a basket.
+  - Their footer: "'ETF' is product branding, not a regulated exchange-traded fund."
+- **The EARN token sits in almost every basket:** EARN ETF = SPY / QQQ / WETH / EARN; EARN AI = NVDA / TSM / MU / WETH / EARN; EARN AEROSPACE = SPCX / BA / PLTR / WETH / EARN.
+- **Caveats:**
+  - Fixed-weight pools auto-rebalance (sell winners, buy losers).
+  - Pools are small (EARN ETF ≈ 1 SPY + 1 QQQ). DefiLlama ≈ $375k TVL across all EARN products.
+- **No public repo found.** Balancer V3 is open source (GPL-3.0).
+
+## 8. Hackathon fit
 | Hackathon | Fit | Notes |
 |---|---|---|
-| **BNB Hack: Tokenized Stocks** (11 Oct) | 🟢 | Stock tokens central (ETF components + S&P ticket). Spot only via PancakeSwap. $2k Agentic Wallet special: an AI helper builds and tops up your ETF from a prompt. DX report material from mixing three token brands |
-| Colosseum, Robinhood Chain track (12 Oct) | 🟡 | Robinhood stock tokens. Overlaps with Kickoff's slot (one submission per team) |
+| Colosseum, Robinhood Chain track (12 Oct) | 🟢 | Build on EARN. Competes with Kickoff for the one submission, unless shipped as a Kickoff feature ("Kickoff ETF League") |
+| BNB Hack: Tokenized Stocks (11 Oct) | 🟡 | Needs our own ETF layer + PancakeSwap execution |
+| BLI Legal Tech (~1 Nov) | 🟡 | RWA theme |
 
-## 6. Reuse
-- **Kickoff:** payout engine (median gate, accuracy weights, cap and water-fill), leaderboards, agent personas.
-- **Synesis:** interpret → confirm agent pattern for the AI ETF helper.
-
-## 7. Open questions and risks
-- **Liquidity:** only allow stock tokens with real on-chain trading volume.
-- **Demo timing:** a week is too long to show, so run a one-day league for the demo.
-- **Our own token:** may look like a cash grab to hackathon judges, and a token whose value comes from a prize game can be treated as a security. Use an S&P ticket for the hackathon and get legal advice before launching a token.
-- **It's still a game with money on it.** The ticket is small and separate from holdings, but a real launch needs legal advice.
-- Check Ondo's existing ETF tokens so we don't rebuild something it already sells.
-
-## 8. Prior art: EARN on Robinhood Chain (earnonhood.com/etfs), checked 2026-10-05
-- **What it is:** a self-deployed **Balancer V3** (vault `0x2808…69EB`, not Balancer's official vault) on Robinhood Chain (chain 4663).
-  - Each "ETF" is a **weighted pool**: your share = your liquidity position, earning 0.3% swap fees.
-  - A **launcher** lets anyone create a basket (e.g. user-made "Leaders": GOOGL / SPCX / META / NVDA).
-  - Their own footer: "'ETF' is product branding, not a regulated exchange-traded fund."
-- **Their token-in-every-basket trick:** the **EARN token sits in almost every basket** (EARN ETF = SPY / QQQ / WETH / EARN; EARN AI = NVDA / TSM / MU / WETH / EARN; …). That's our "you must buy our token" idea, proven live.
-- **Caveats:**
-  - Fixed-weight pools **auto-rebalance** (sell winners, buy losers), so they behave differently from holding the stocks.
-  - Pools are small (EARN ETF ≈ 1 SPY + 1 QQQ). DefiLlama shows ≈ $375k TVL across all EARN products.
-- **No public repo found.** Balancer V3 itself is open source (GPL-3.0).
-
-## 9. Plan B: build the league on top of EARN (no exchange to build)
-**The clock, not listings, drives the game.** It runs every week. Any EARN basket can enter: EARN's own, community-made, or one the player creates with EARN's launcher. New listings simply join the next round.
-
-**Weekly round**
-1. **Start:** Monday at US market open (13:30 UTC). Starting at market open means stock prices have a real reference, so nobody can game the weekend gap.
-2. **Enter:**
-   - **Investor mode:** lock your EARN basket shares into the league contract for the week. They keep earning swap fees inside the pool, and you get them back at the end.
-   - **Player mode:** just pick a basket without holding it.
-   - Either way, buy a **ticket** (USDG, or the EARN token if we partner with them).
-3. **Score:** % change in the basket's **value per share** from start to end. This includes the swap fees it earned, so busy baskets get a bonus.
-4. **End:** next Monday at market open. The top half split the ticket pot (Kickoff's weighted payout: the best get the most). Investors also get their shares back.
-5. **Leaderboards:** best investors, and best basket creators (whose baskets did best, and how many people played them).
-
-**Keeping it fair**
-- **Value baskets with trusted prices**, not the pool's own prices. Otherwise someone could pump a thin coin in their basket.
-- **Only allow league-eligible baskets:** stock tokens + WETH + USDG + EARN, above a minimum liquidity. No memecoin baskets.
-- **Snapshot with averages** around start and end (time-weighted), not a single block.
-- **Investor mode requires locked shares,** so nobody can borrow shares for the snapshot.
-
-**Why EARN would like it:** the league sends players and trading volume (fees) to their pools. Pitch them to sponsor the prize pot or use EARN as the ticket.
-
-**Fit:** Colosseum Robinhood Chain track (12 Oct). Competes with Kickoff for the one submission, unless it ships as a Kickoff feature ("Kickoff ETF League").
-
-## 10. What's split, and how we make money
-**What's split:** only the **ticket pot** (all tickets bought that week). Investors' basket shares are never split. They're locked and returned in full. Winners get their ticket back plus a share of the losing tickets.
-
-**Revenue**
-1. **Rake on the losing tickets** (main, Kickoff's model): e.g. 10% of the losers' half, of which 5% goes to us and 5% to a **season pot** (best over a season, which keeps people coming back).
-2. **Convenience fee on buying baskets through our app:** a small fee (e.g. 0.1–0.3%) when we buy the basket for you.
-3. **Interest on the float:** tickets sit for a week. Park them in a stablecoin vault on Robinhood Chain (Morpho has vaults on chain 4663) and keep the interest or add it to the pot.
-4. **Partner money:** EARN sponsors pots or pays for the volume we send them.
-5. **Later:** featured baskets, creator promotion, premium analytics, our own token as the ticket.
-
-**Example:** 1,000 players × $10 = $10k pot; losers' half = $5k; 10% rake = $500 a week (5% = $250 to us, $250 to the season pot), plus the extras above.
-
-**Legal flag:** a house cut of a prize pot is the classic gambling model. Skill-based fantasy contests are treated differently in some places, but get advice before a real launch.
+## 9. Risks
+- **A house cut of a prize pot is gambling-like.** Skill contests are treated differently in some places. Get legal advice before a real launch.
+- **Dependence on EARN's contracts** (audit status unknown) and thin pools.
+- **One settlement a week:** for demos, run a one-day round.
