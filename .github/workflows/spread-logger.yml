@@ -1,0 +1,36 @@
+name: Weekend spread logger
+
+# Weekends every 15 min (Fri after the close to Mon before the open, UTC),
+# plus a weekday baseline every 2 hours. About 1,400 Actions minutes a month.
+on:
+  schedule:
+    - cron: "*/15 20-23 * * 5"
+    - cron: "*/15 * * * 6,0"
+    - cron: "*/15 0-13 * * 1"
+    - cron: "7 */2 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: spread-logger
+  cancel-in-progress: false
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log prices
+        run: python3 tools/spread-logger/log_spreads.py
+      - name: Commit data
+        run: |
+          git config user.name "spread-logger[bot]"
+          git config user.email "spread-logger@users.noreply.github.com"
+          git add data/spreads
+          git diff --cached --quiet && exit 0
+          git commit -m "spread-logger: $(date -u +%Y-%m-%dT%H:%MZ)"
+          for i in 1 2 3; do git pull --rebase -q && git push -q && exit 0; sleep 5; done
+          exit 1
