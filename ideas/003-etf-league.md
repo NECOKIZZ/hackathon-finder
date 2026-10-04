@@ -15,7 +15,7 @@ Hold an on-chain ETF and you already earn trading fees. Lock a **fixed $5 stake*
 - **ETF composition:** at least 3 eligible stock tokens, no single stock above 50%, locked for the round.
 - **Result:** the middle ETF draws the line (one ETF, one vote).
   - **Top half win, bottom half lose their stake.**
-  - Winners are paid stake × accuracy (Kickoff's weighted payout, 100× cap with water-fill).
+  - The pot is split **per team** (see §3, "Splitting the pot").
   - Ties across the whole field → void, refund.
 - **Round needs at least 4 ETFs,** otherwise void and refund.
 
@@ -39,7 +39,25 @@ Hold an on-chain ETF and you already earn trading fees. Lock a **fixed $5 stake*
 - Backers' buy-ins grow the ETF, which means more trading and more fees for everyone in it, including the creator.
 - **The creator takes 10% of their backers' league winnings** (only when the team wins).
 
-**Odds dynamics:** half the ETFs always lose (one ETF, one vote). A crowded favourite that wins splits the pot among many members. A smaller winning team gets a bigger share each. Backing an underrated creator early pays most.
+## Splitting the pot (two steps)
+1. **Between winning teams:** each winning team gets a slice by **how well its ETF did** (how far above the middle line). **One team, one share.** Team size doesn't buy a bigger slice.
+2. **Inside a team:** members split their team's slice **equally per $5 stake**. Then **10% of each backer's winnings goes to the creator.**
+
+**Effect:** a crowded winning team splits its slice among many people (less each); a small winning team splits among few (more each). That gives a reason to spread across ETFs instead of piling onto one.
+
+**When few people are on the losing side**
+- It's peer-to-peer, so a thin losing side simply means smaller winnings that week.
+- **Live odds before the round locks:** show each team's estimated payout per $5 if it wins. Crowded teams show low payouts, so people spread out and the losing side naturally fills up.
+- **Team size cap** (e.g. 20 backers per creator) stops one ETF absorbing the whole league.
+- **Thin-pot top-up:** if the losing pot is under ~5% of winning stakes, the season pot (funded by the rake) tops it up to a minimum. Still player-funded overall.
+
+**Example**
+- A: creator + 20 backers (21 × $5); B: 3 members. Both win.
+- C: 1 member; D: 2 members. Both lose → pot $15, minus 10% = $13.50.
+- A did better than B, so A gets 60% ($8.10) and B gets 40% ($5.40).
+- Per $5 stake: A members get about $0.39 each (+7.7%); B members get $1.80 each (+36%).
+- A's creator also takes 10% of their 20 backers' winnings.
+- Lesson: crowded teams earn little even when they win.
 
 ## 4. Leaderboards and extras
 - **Creators:** wins, streaks, total backing attracted.
