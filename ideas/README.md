@@ -11,6 +11,9 @@ Full hackathon mapping: [`hackathons/2026-10-october-list/MAPPING.md`](../hackat
 | [001](001-kol-impression-streams.md) | KOL Impression Streams | Projects pay KOLs in a real-time stream, priced per verified X impression | Captured | Monad Metropolis (Track 03 + bounties) 🟢 · Qloo 🟡 · PayPal+AI 🟡 · Colosseum Tempo track 🟡 |
 | [002](002-busha-for-stocks.md) | Busha for Stocks | Buy US stocks with naira in seconds, 24/7, self-custodied | Captured | **BNB Hack: Tokenized Stocks 🟢🟢** · Monad Metropolis (Agora + Kuru bounties) 🟡 |
 | [003](003-etf-league.md) | ETF League | Build your own ETF from tokenized stocks, add a ticket, best investors win everyone's tickets. Players mode for predictions | Captured | **BNB Hack: Tokenized Stocks 🟢** · Colosseum Robinhood 🟡 |
+| [004](004-zcash-proof-of-funds.md) | Zcash Proof of Funds (pure ZK) | Prove "I can pay X" from a shielded wallet: no balance, address or linkable spend revealed | Captured | **Zecathon: Core & Tooling 🟢** (grand-prize ceiling) |
+| [005](005-ajo-savings-circle.md) | Ajo: Private Savings Circle | Rotating savings circle on Zcash; members audit, public sees nothing | Captured | **Zecathon: Shielded Payments 🟢** (safest) |
+| [006](006-private-forecast-market.md) | Private Forecast Market | Closest-guess prediction market with hidden guesses and anonymous players | Captured | Zecathon: Private Markets 🟡 |
 | — | Cuerate on Monad (curator rewards) | Early likers earn when a post takes off. A paid-curation feed | Candidate | Monad Metropolis: Track 03 |
 | — | Kickoff on Monad (on-chain settlement + in-play) | Fully on-chain proximity markets with per-block in-play pricing | Candidate | **Kickoff as-is → Colosseum Robinhood Chain track 🟢🟢** · Monad Metropolis Track 01 🟡 |
 
