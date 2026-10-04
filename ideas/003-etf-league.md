@@ -84,3 +84,17 @@ Build your own ETF from tokenized stocks, add a ticket, and compete weekly on gr
 **Why EARN would like it:** the league sends players and trading volume (fees) to their pools. Pitch them to sponsor the prize pot or use EARN as the ticket.
 
 **Fit:** Colosseum Robinhood Chain track (12 Oct). Competes with Kickoff for the one submission, unless it ships as a Kickoff feature ("Kickoff ETF League").
+
+## 10. What's split, and how we make money
+**What's split:** only the **ticket pot** (all tickets bought that week). Investors' basket shares are never split. They're locked and returned in full. Winners get their ticket back plus a share of the losing tickets.
+
+**Revenue**
+1. **Rake on the losing tickets** (main, Kickoff's model): e.g. 10% of the losers' half, of which 5% goes to us and 5% to a **season pot** (best over a season, which keeps people coming back).
+2. **Convenience fee on buying baskets through our app:** a small fee (e.g. 0.1–0.3%) when we buy the basket for you.
+3. **Interest on the float:** tickets sit for a week. Park them in a stablecoin vault on Robinhood Chain (Morpho has vaults on chain 4663) and keep the interest or add it to the pot.
+4. **Partner money:** EARN sponsors pots or pays for the volume we send them.
+5. **Later:** featured baskets, creator promotion, premium analytics, our own token as the ticket.
+
+**Example:** 1,000 players × $10 = $10k pot; losers' half = $5k; 10% rake = $500 a week (5% = $250 to us, $250 to the season pot), plus the extras above.
+
+**Legal flag:** a house cut of a prize pot is the classic gambling model. Skill-based fantasy contests are treated differently in some places, but get advice before a real launch.
