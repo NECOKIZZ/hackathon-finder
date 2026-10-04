@@ -4,12 +4,14 @@ Every idea gets a file here, whether or not it's tied to a hackathon. When a new
 
 ## Index
 
+Full hackathon mapping: [`hackathons/2026-10-october-list/MAPPING.md`](../hackathons/2026-10-october-list/MAPPING.md)
+
 | # | Idea | One-liner | Status | Best hackathon fit so far |
 |---|---|---|---|---|
-| [001](001-kol-impression-streams.md) | KOL Impression Streams | Projects pay KOLs in a real-time stream, priced per verified X impression | Captured | Monad Metropolis: Track 03 + Chainlink CRE, Privy |
-| [002](002-busha-for-stocks.md) | Busha for Stocks | Buy US stocks with naira in seconds, 24/7, self-custodied | Captured | Monad Metropolis: Agora Mobile Trading $10k + Kuru |
+| [001](001-kol-impression-streams.md) | KOL Impression Streams | Projects pay KOLs in a real-time stream, priced per verified X impression | Captured | Monad Metropolis (Track 03 + bounties) 🟢 · Qloo 🟡 · PayPal+AI 🟡 · Colosseum Tempo track 🟡 |
+| [002](002-busha-for-stocks.md) | Busha for Stocks | Buy US stocks with naira in seconds, 24/7, self-custodied | Captured | **BNB Hack: Tokenized Stocks 🟢🟢** · Monad Metropolis (Agora + Kuru bounties) 🟡 |
 | — | Cuerate on Monad (curator rewards) | Early likers earn when a post takes off. A paid-curation feed | Candidate | Monad Metropolis: Track 03 |
-| — | Kickoff on Monad (on-chain settlement + in-play) | Fully on-chain proximity markets with per-block in-play pricing | Candidate | Monad Metropolis: Track 01 |
+| — | Kickoff on Monad (on-chain settlement + in-play) | Fully on-chain proximity markets with per-block in-play pricing | Candidate | **Kickoff as-is → Colosseum Robinhood Chain track 🟢🟢** · Monad Metropolis Track 01 🟡 |
 
 **Status:** Captured → Researched → Picked (for hackathon X) → Spec'd → Built → Submitted → Result
 
