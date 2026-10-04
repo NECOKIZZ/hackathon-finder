@@ -20,14 +20,26 @@ Hold an on-chain ETF and you already earn trading fees. Lock a **fixed $5 stake*
 - **Round needs at least 4 ETFs,** otherwise void and refund.
 
 ## 3. Backers (supporting a creator)
-- **Backing = joining the creator's team.** A backer buys $5 tickets behind an ETF. **The team wins or loses together** with that ETF's result. Backers never compete against each other.
-- **The pot = every stake on the bottom-half teams** (creators + their backers). The top-half teams split it, weighted by stake × accuracy.
-- **Natural odds:** a crowded favourite that wins pays each backer less; a hidden gem that wins pays a lot. Backers become scouts.
-- **Creator rewards from backers:** the creator takes **10% of their backers' winnings** (only when the team wins).
-- **Skin in the game:**
-  - Total backing per ETF is capped (e.g. 20 tickets per creator ticket).
-  - Backing closes when the round starts.
-  - The ETF mix is locked for the round.
+**Backers buy into the ETF they support.** They hold real shares of the creator's ETF.
+
+**They win or lose in two ways:**
+1. **As holders (automatic):** their ETF shares rise or fall with the stocks, and earn trading fees. No game needed.
+2. **In the league (optional):** a backer locks the same **fixed $5 stake** and **joins the creator's team**.
+   - The team wins or loses on the ETF's % growth, the same result as the creator.
+   - **Top-half teams** (creator + backers) get their $5 back plus a share of the bottom-half teams' stakes.
+   - **Bottom-half teams** lose their $5s.
+   - Payout = stake × accuracy, as in Kickoff. Every member of a team earns the same % return.
+
+**Rules**
+- **Must hold to back:** lock at least the minimum holding (e.g. $10) of that ETF's shares in the league escrow for the round. The shares keep earning fees and come back after. No ticket-only backing.
+- Joining closes when the round starts. The ETF mix is locked for the round.
+- One team per wallet per round (keeps it clean, no hedging across teams).
+
+**Why creators want backers**
+- Backers' buy-ins grow the ETF, which means more trading and more fees for everyone in it, including the creator.
+- **The creator takes 10% of their backers' league winnings** (only when the team wins).
+
+**Odds dynamics:** half the ETFs always lose (one ETF, one vote). A crowded favourite that wins splits the pot among many members. A smaller winning team gets a bigger share each. Backing an underrated creator early pays most.
 
 ## 4. Leaderboards and extras
 - **Creators:** wins, streaks, total backing attracted.
