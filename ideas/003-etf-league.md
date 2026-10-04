@@ -6,43 +6,45 @@
 ---
 
 ## 1. One-liner
-Hold an on-chain ETF and you already earn trading fees. **Lock a fixed $5 of the stake token next to it**, and if your ETF beats the bottom half this week, you win their $5s.
+Hold an on-chain ETF and you already earn trading fees. Lock a **fixed $5 stake** to enter the weekly league. Best-growing ETFs (and their backers) win the stakes of the worst. Peer-to-peer, like Kickoff: the platform never puts money in.
 
-## 2. Core mechanic (Neco's design)
-- **An ETF** = a basket of tokens (e.g. 4 stocks + the platform token). Holders earn trading fees just by holding (as on EARN).
-- **The stake:** to enter the weekly round, lock a **fixed $5** worth of the stake token (EARN, or our own token later) in a **separate escrow**, alongside your ETF.
-- **The round:**
-  - ETFs are ranked by the growth of the **picked stocks only** (stake token, WETH and stablecoins excluded from the score).
-  - **Top half:** get their $5 back plus a share of the bottom half's stakes. Better rank = bigger share (Kickoff's weighted payout, not winner-takes-all).
-  - **Bottom half:** lose their $5 stake. Their ETF holdings and fees are never touched.
-- **Why a fixed $5:** everyone risks the same, so whales can't buy wins. Scoring by % growth means a $50 holder can beat a $50,000 holder.
+## 2. Core rules (decided 2026-10-05)
+- **Stake: fixed $5, separate from the portfolio.** It isn't a % of the ETF and doesn't sit inside the basket. Same ticket for everyone, so small players aren't priced out and whales aren't over-exposed. This is Kickoff's live "fixed stake" mode (its listing agent opens every market at a fixed ticket).
+- **Minimum ETF size:** small, e.g. $10 (or EARN's own minimum). Only there to keep dust and dummy ETFs out.
+- **Score = % growth of the ETF's stocks** over the round (Monday US open → next Monday open), priced with trusted reference prices and time-weighted around the snapshots. The stake token, WETH and stablecoins are excluded. Never dollars added: % rewards skill, not size.
+- **ETF composition:** at least 3 eligible stock tokens, no single stock above 50%, locked for the round.
+- **Result:** the middle ETF draws the line (one ETF, one vote).
+  - **Top half win, bottom half lose their stake.**
+  - Winners are paid stake × accuracy (Kickoff's weighted payout, 100× cap with water-fill).
+  - Ties across the whole field → void, refund.
+- **Round needs at least 4 ETFs,** otherwise void and refund.
 
-## 3. Upgrades that make it more interesting
-1. **Back an ETF.**
-   - Anyone can lock $5 behind someone else's ETF without holding it.
-   - Backers win or lose with that ETF.
-   - **Creators earn 10% of their backers' winnings.**
-   - "Back my ETF" links are made for sharing on X, which makes this the viral loop.
-2. **Streaks.** Every consecutive top-half week adds a small bonus (paid from the season pot). ETFs with long streaks become famous, and backers pile in.
-3. **Duels.** Challenge another ETF one-on-one for $5: "My AI basket vs your Aerospace basket this week." Easy to share, easy to understand.
-4. **Survivor season.** Over a season (e.g. 8 weeks), the bottom half are knocked out of the survivor table each week (they can keep playing normal rounds). The last ETFs standing win the **season pot**.
-5. **Beat-the-market bonus.** ETFs that beat SPY that week get an extra slice. Picking well has to mean beating the index, not just beating other players.
+## 3. Backers (supporting a creator)
+- **Backing = joining the creator's team.** A backer buys $5 tickets behind an ETF. **The team wins or loses together** with that ETF's result. Backers never compete against each other.
+- **The pot = every stake on the bottom-half teams** (creators + their backers). The top-half teams split it, weighted by stake × accuracy.
+- **Natural odds:** a crowded favourite that wins pays each backer less; a hidden gem that wins pays a lot. Backers become scouts.
+- **Creator rewards from backers:** the creator takes **10% of their backers' winnings** (only when the team wins).
+- **Skin in the game:**
+  - Total backing per ETF is capped (e.g. 20 tickets per creator ticket).
+  - Backing closes when the round starts.
+  - The ETF mix is locked for the round.
 
-## 4. Fairness rules
-- **Lock window:** stakes are locked from Monday's US market open to next Monday's open (real price anchors, no weekend-gap games).
-- **Snapshot prices with time-weighted averages** around start and end, using trusted stock prices, not the pool's own prices.
-- **Eligibility:**
-  - minimum ETF size and liquidity;
-  - stock tokens + majors only (no memecoin baskets);
-  - the holder must have held the ETF for the whole week.
-- **Spamming many ETFs doesn't pay:** spreading $5s across 10 random ETFs averages out to losing the platform fee. Leaderboards use season-long records, so luck doesn't look like skill.
+## 4. Leaderboards and extras
+- **Creators:** wins, streaks, total backing attracted.
+- **Scouts (backers):** season win rate and return.
+- **Extras (later):**
+  - Streak bonuses and survivor seasons, paid from the season pot.
+  - Duels (one-on-one, $5).
+  - Beat-the-SPY bonus.
+- **Why bring big liquidity** (outside the game):
+  - trading fees on the ETF;
+  - room for more backers (more creator income);
+  - a season "depth bonus" for liquidity kept in all season.
 
 ## 5. How we make money
-- **10% of the bottom half's stakes** (e.g. 5% to us, 5% to the season pot).
-- **Stake-token demand:** every entry, backing and duel needs the token. With our own token, we earn its trading fees.
-- **Sponsorship:** the platform (e.g. EARN) funds pots, because the league sends holders to its pools.
-
-**Example:** 200 ETFs enter × $5 = $1,000. The bottom 100 lose $500. 10% = $50 (us $25, season pot $25). The top 100 split $450, weighted by rank. Backers and duels multiply the volume.
+- **10% of the losers' stakes:** 5% to us, 5% to the season pot.
+- **Stake-token demand** if stakes are paid in our token or EARN. Sponsorship from the ETF platform, since we send it holders.
+- **Example:** 200 ETFs × $5 = $1,000. Bottom half $500 → 10% = $50 (us $25, season pot $25). Top half split $450, weighted by rank. Backers multiply the volume.
 
 ## 6. Where it runs
 - **On top of EARN (Robinhood Chain):** EARN already has the ETFs and the fee-earning (see §7). We only build the stake escrow, scoring and league. EARN as the stake token aligns us with them, so pitch them to sponsor.
