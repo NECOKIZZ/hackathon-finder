@@ -1,0 +1,137 @@
+======================================================================
+PART 1: extreme scenarios (alpha=1, stake-weighted)
+======================================================================
+
+## Basic 4 ETFs
+    WIN  A          ret  +8.00%  members  6  team ROI    +72.4%  creator $10.43  backer each $8.26
+    WIN  B          ret  +3.00%  members  3  team ROI     +5.1%  creator $5.31  backer each $5.23
+    lose C          ret  -1.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    lose D          ret  -5.00%  members  4  team ROI   -100.0%  creator $0.00  backer each $0.00
+    platform $1.25  season+ $1.25  season- $0.00  refunded $0.00
+
+## Too few ETFs (3) → void
+    VOID: too few ETFs
+  PASS 3 ETFs voids and refunds
+
+## All returns equal → void
+    VOID: all returns equal
+  PASS equal returns void
+
+## Top coalition: 3 of 5 tie for best
+    WIN  A          ret  +4.00%  members  2  team ROI   +225.0%  creator $17.38  backer each $15.12
+    WIN  B          ret  +4.00%  members  2  team ROI   +225.0%  creator $17.38  backer each $15.12
+    WIN  C          ret  +4.00%  members  2  team ROI   +225.0%  creator $17.38  backer each $15.12
+    lose D          ret  +1.00%  members 10  team ROI   -100.0%  creator $0.00  backer each $0.00
+    lose E          ret  -0.50%  members  5  team ROI   -100.0%  creator $0.00  backer each $0.00
+    platform $3.75  season+ $3.75  season- $0.00  refunded $0.00
+  PASS tied best group all win
+
+## Crowd of 21 wins, losers are 3 solo creators (thin pot)
+    WIN  Crowd      ret  +9.00%  members 21  team ROI    +12.8%  creator $6.92  backer each $5.58
+    WIN  Solo0      ret  +1.00%  members  1  team ROI     +0.3%  creator $5.01  backer each —
+    WIN  Solo1      ret  +0.50%  members  1  team ROI     +0.2%  creator $5.01  backer each —
+    lose Solo2      ret  +0.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    lose Solo3      ret  -0.50%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    lose Solo4      ret  -1.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    platform $0.75  season+ $0.75  season- $0.00  refunded $0.00
+  PASS thin pot: crowd still gets stake back  (ROI 12.8%)
+  PASS 4 ETFs → exactly 2 winners (top half)  (['CrowdA', 'CrowdB'])
+
+## Really thin pot: two full teams win, two solos lose
+    WIN  CrowdA     ret  +9.00%  members 21  team ROI     +6.4%  creator $5.96  backer each $5.29
+    WIN  CrowdB     ret  +7.00%  members 21  team ROI     +2.2%  creator $5.32  backer each $5.10
+    lose SoloC      ret  -1.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    lose SoloD      ret  -3.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    platform $0.50  season+ $0.50  season- $0.00  refunded $0.00
+
+## Same, with season pot $50 available (top-up)
+    WIN  CrowdA     ret  +9.00%  members 21  team ROI     +7.5%  creator $6.12  backer each $5.34
+    WIN  CrowdB     ret  +7.00%  members 21  team ROI     +2.5%  creator $5.38  backer each $5.11
+    lose SoloC      ret  -1.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    lose SoloD      ret  -3.00%  members  1  team ROI   -100.0%  creator $0.00  backer each —
+    platform $0.50  season+ $0.50  season- $1.50  refunded $0.00
+  PASS top-up used from season pot  ($1.50)
+
+## Solo gem wins, 3 full teams (63 people) lose (cap 100x)
+    WIN  Gem        ret  +9.00%  members  1  team ROI  +4232.0%  creator $216.60  backer each —
+    WIN  Crowd0     ret  +0.50%  members 21  team ROI    +68.5%  creator $15.27  backer each $8.08
+    lose Crowd1     ret  +0.40%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    lose Crowd2     ret  +0.30%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    lose Crowd3     ret  +0.20%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    platform $15.75  season+ $15.75  season- $0.00  refunded $0.00
+  PASS gem gain within 100x cap
+
+## Same with cap 10x → excess flows to the other winner first
+    WIN  Gem        ret  +9.00%  members  1  team ROI  +1000.0%  creator $55.00  backer each —
+    WIN  Crowd0     ret  +0.50%  members 21  team ROI   +222.4%  creator $38.36  backer each $15.01
+    lose Crowd1     ret  +0.40%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    lose Crowd2     ret  +0.30%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    lose Crowd3     ret  +0.20%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    platform $15.75  season+ $15.75  season- $0.00  refunded $0.00
+  PASS gem gain capped at 10x
+
+## Two solo winners vs two full losing teams, cap 10x → refund
+    WIN  Gem        ret  +9.00%  members  1  team ROI  +1000.0%  creator $55.00  backer each —
+    WIN  Small      ret  +5.00%  members  1  team ROI  +1000.0%  creator $55.00  backer each —
+    lose CrowdX     ret  -1.00%  members 21  team ROI    -52.9%  creator $2.35  backer each $2.35
+    lose CrowdY     ret  -3.00%  members 21  team ROI    -52.9%  creator $2.35  backer each $2.35
+    platform $5.56  season+ $5.56  season- $0.00  refunded $98.89
+  PASS all winners capped → losers refunded unmatched stake  ($98.89)
+
+## Four maxed teams (84 people)
+    WIN  Max        ret +10.00%  members 21  team ROI   +162.8%  creator $29.42  backer each $12.33
+    WIN  Big        ret  +5.00%  members 21  team ROI    +17.2%  creator $7.58  backer each $5.77
+    lose Big2       ret  -1.00%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    lose Max2       ret  -9.00%  members 21  team ROI   -100.0%  creator $0.00  backer each $0.00
+    platform $10.50  season+ $10.50  season- $0.00  refunded $0.00
+  PASS 200 ETFs settles with conservation  (99 winners)
+
+======================================================================
+PART 2: exploits
+======================================================================
+
+## Team vs clones: 21 people back one ETF, or each copies it as their own ETF
+    alpha=0.0: one team gains $17.24  |  21 clones gain $27.00
+    alpha=0.5: one team gains $17.83  |  21 clones gain $27.00
+    alpha=1.0: one team gains $17.96  |  21 clones gain $27.00
+  PASS alpha=0 (one team, one share) rewards cloning over backing  (flaw confirmed)
+    note: clones also add 21 ETFs that shift the median; compare per-stake gains below
+
+## Same capital, team vs clones, holding the field's median fixed
+    alpha=0.0: 5 people as one team gain $37.43  |  as 5 clones gain $82.24
+    alpha=1.0: 5 people as one team gain $72.42  |  as 5 clones gain $82.24
+
+## Same, with clone-merging (identical baskets join the first ETF's team)
+    one team gains $72.42  |  5 clones (merged) gain $72.42
+  PASS clone-merging removes the copy advantage
+
+## Sybil median attack: attacker adds k junk ETFs to push their ETF above the median
+     0 junk ETFs: attacker net $-5.00  (Mine wins: False)
+     5 junk ETFs: attacker net $-24.30  (Mine wins: True)
+    10 junk ETFs: attacker net $-48.89  (Mine wins: True)
+    20 junk ETFs: attacker net $-97.85  (Mine wins: True)
+
+## Creator sybil-backs own ETF (fee loop)
+     0 self-backers: creator+sybils net $59.55  per stake +59.55
+    10 self-backers: creator+sybils net $127.56  per stake +11.60
+    20 self-backers: creator+sybils net $134.89  per stake +6.42
+
+======================================================================
+PART 3: Monte Carlo fairness, 20,000 rounds (alpha=1)
+======================================================================
+    (per-stake averages: every $5 counts once)
+    creator       mean ROI  +1.67%  win rate  49.2%  stakes=640224
+    backer        mean ROI  -5.79%  win rate  58.4%  stakes=2650387
+    solo_team     mean ROI -23.30%  win rate  42.4%  stakes=147976
+    crowded_team  mean ROI  +9.22%  win rate  66.2%  stakes=1345717
+    skilled       mean ROI +42.28%  win rate  76.3%  stakes=935702
+    unskilled     mean ROI -68.26%  win rate  23.1%  stakes=297718
+    ALL STAKES    mean ROI  -4.34%  (should equal minus the platform+season take)
+    platform take 2.17% of all stakes; season pot net +$356,812.75; void rounds 0; top-ups 0; refunded $0.00
+  PASS skilled ETFs earn more than unskilled
+  PASS platform take ≤ 5% of stakes
+  PASS creators earn more than backers on average (fee)
+    creator vs backer gap: 7.46 points (the 10% creator fee)
+
+======================================================================
+RESULT: ALL CHECKS PASSED
