@@ -193,6 +193,14 @@ ajo/
 6. Skip ahead: member 3 misses a payment. The deposit covers it, and member 3 is asked to prove they're unpaid or be named.
 7. Close on the who-sees-what table (§3).
 
+## 11b. Stretch: payout as a claim link (idea from XENIA)
+[XENIA](https://github.com/jadonamite/XENIA) (Starknet, STRK20) sends private payments as **claim links**: the money waits behind a URL, and whoever opens it claims it into a wallet, with no setup beforehand. We can't reuse its code (different chain, and Zecathon needs our own code), but the idea fits ajo's users:
+- **No wallet needed to win.** When you win, your app makes a throwaway Orchard key and gives its address as the claim address (§5 step 5). The pot pays it. The hidden-winner property is unchanged: it's still a fresh address only you control.
+- **Claim later, or forward it.** Sweep it into Zashi whenever you like, or turn it into a link (the key sits in the URL fragment, so it never reaches a server) and send it on WhatsApp, e.g. to Mum in Lagos.
+- **Warning in the UI:** a link is cash. Anyone holding it can spend it. Sweep it as soon as it arrives.
+- Zcash's own draft for this is **ZIP 324 (URI-encapsulated payments)**. Check wallet support; if none, our app does the sweep with `librustzcash`.
+- Cost ~1–2 days after day 17. Demo moment: "the winner didn't even have a Zcash wallet."
+
 ## 12. Open questions (day-1 spike answers most)
 - Does ZF's FROST tooling sign **Orchard** spends via PCZT end to end on testnet today? (Aegis Gate says yes. Copy its approach, not its code.)
 - How are the pot's non-spend key parts (`nk`, `rivk`) generated and shared after DKG? Follow ZF's guidance / Zafe's `upstream-asks.md`.
