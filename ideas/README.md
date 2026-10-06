@@ -15,7 +15,7 @@ Full hackathon mapping: [`hackathons/2026-10-october-list/MAPPING.md`](../hackat
 | [005](005-ajo-savings-circle.md) | Ajo: Private Savings Circle | Rotating savings circle on Zcash; members audit, public sees nothing | Researched ([prior art](005-ajo-prior-art.md)) | **Zecathon: Shielded Payments 🟢** (safest) |
 | [006](006-private-forecast-market.md) | Private Forecast Market | Closest-guess prediction market with hidden guesses and anonymous players | Captured | Zecathon: Private Markets 🟡 |
 | [007](007-agent-compute-staking.md) | Agent Compute Staking | Agents stake and get compute streamed as yield. Polished: no-loss USDC → compute + idle capacity sold to other agents | Captured + critiqued | Circle Grants 🟢 · Monad / Nebius / Open Agent 🟡 |
-| [008](008-private-dead-mans-switch.md) | Private Dead Man's Switch | Shielded ZEC passes to your heir if you stop checking in: time-lock encryption, no guardians | Picked | **Zecathon: Core & Tooling / Wildcard 🟢** (alongside 005) |
+| [008](008-private-dead-mans-switch.md) | Private Dead Man's Switch | Shielded ZEC passes to your heirs if you stop checking in: time-lock encryption, no guardians. Family mode: 2 of 3 heirs must combine key pieces | Picked | **Zecathon: Core & Tooling / Wildcard 🟢** (alongside 005) |
 | — | Cuerate on Monad (curator rewards) | Early likers earn when a post takes off. A paid-curation feed | Candidate | Monad Metropolis: Track 03 |
 | — | Kickoff on Monad (on-chain settlement + in-play) | Fully on-chain proximity markets with per-block in-play pricing | Candidate | **Kickoff as-is → Colosseum Robinhood Chain track 🟢🟢** · Monad Metropolis Track 01 🟡 |
 
