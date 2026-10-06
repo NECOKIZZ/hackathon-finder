@@ -2,6 +2,7 @@
 
 **Status:** Captured · **Captured:** 2026-10-04 · **Origin:** Neco (from the Zecathon idea list, #6)
 **Working name:** TBD
+**Build spec (hidden-winner mode, Zcash):** [prototypes/ajo/BUILDING.md](../prototypes/ajo/BUILDING.md)
 **Prior art + iterations:** [005-ajo-prior-art.md](005-ajo-prior-art.md) (Sharibo, Àjọ/Zama, Saving Circles, CircleFi, Aegis Gate, Zafe)
 
 ---
