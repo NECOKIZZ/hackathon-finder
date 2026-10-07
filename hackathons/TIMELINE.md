@@ -17,7 +17,7 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 | Oct 10–11 | #neathack | $10k | — | ⛔ | Clashes |
 | **Oct 11, 12:00 UTC** | **BNB Hack: Tokenized Stocks** | $20k + 2 × $2k specials | **003 ETF League** (or 002 Busha for Stocks / weekend spread engine) | 🎯 | Ondo / xStocks / bStocks central, BSC mainnet, spot only. Dev-experience report = 25% |
 | **Oct 12, 11:59pm PT** | **Colosseum Crypto World's Fair** | $840k total; Robinhood Chain track 5 × $5k; 20 × $15k standouts | **Kickoff** (+ Monday Open markets as new work) | 🎯 | Pre-existing code allowed if disclosed; judged on work since Sep 14. One submission per team |
-| **Oct 13** | **Monad Metropolis** | $250k+ (tracks + ~$81k bounties) | **001 KOL Impression Streams** (Track 03 + CRE, Privy, MetaMask, Nansen, Agora, Aurora bounties) | 🎯 | New work since Sep 1. See `2026-10-monad-metropolis/` |
+| **Oct 13** | **Monad Metropolis** | $250k+ (tracks + ~$81k bounties) | **Veil: private payments layer** (x402 for agents, payroll, KOL streams; absorbs 001). Track 04 + Mera ×2, MetaMask, Envio, Agora, CRE | 🎯 | New work since Sep 1. Plan: `2026-10-monad-metropolis/BUILD.md` |
 | Oct 13 (registration) · build Oct 15–20 | Open Agent Hackathon | up to $20k | 007 Agent Compute Staking | 🟡 | Prize detail not public |
 | **Oct 14** | **Arc Microgrants Mainnet Challenge** | 20 × $500 USDC | Synesis / Cuerate / `.arc` redeployed on Arc mainnet | 🎯 | Rolling review: submit early |
 | Oct 14 (kickoff) | Portaldot Hacker House | $5.2k | — | ⛔ | Not open yet + low prize |
