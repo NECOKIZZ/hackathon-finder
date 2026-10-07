@@ -11,7 +11,7 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 | Oct 4 | Arbitrum Open House | $115k | — | ✅ closed | |
 | Oct 5 | Road to Colosseum MVP · WeAreDevelopers × Band · Veles Hack | small | — | ✅ closed | |
 | Oct 6 (registration) · build Oct 9–11 | Qollab × IonQ Quantum | $10k + $20k compute | Animated explainer for "Quantum Unlocked" (motion-design skill) | 🟡 | 48h build clashes with BNB / Colosseum weekend |
-| **Oct 8** (time not published; plan for end of day 7 Oct) | Solana Mobile: Clock In | $125k + $10k SKR | TBD (brainstorm) | 🟡 | Reconfirmed 7 Oct. Needs an Android APK, repo, demo video, pitch deck. dApp Store listing only required for winners. Falls **before** Monad, not after |
+| **Oct 12** (postponed from Oct 8, per the organizers; the public blog still says Oct 8. Confirm the time in the portal) | Solana Mobile: Clock In | $125k + $10k SKR | TBD (brainstorm) | 🟡 | Needs an Android APK, repo, demo video, pitch deck. dApp Store listing only required for winners. Same week as the Monad build |
 | Oct 8 | Bitget AI Hackathon S2 | $50k USDT (unverified) | Delphi | ⛔ | Rules not found; too soon |
 | Oct 9 | HackCanton S3 | $50k | — | ⛔ | DAML, not our stack |
 | Oct 10–11 | #neathack | $10k | — | ⛔ | Clashes |

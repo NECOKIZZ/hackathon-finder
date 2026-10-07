@@ -491,7 +491,7 @@ Optional: in-memory rate limiting on the relayer. A Redis or KV store only if we
 
 ## 9. Day-by-day plan
 
-**Calendar:** BNB Hack is nearly done and Colosseum is being submitted on 7 Oct, so Metropolis gets the full 8–12 Oct. **Solana Clock In closes 8 Oct**, so if we enter it, it costs the first Monad build day (see `TIMELINE.md`).
+**Calendar:** BNB Hack is nearly done and Colosseum is being submitted on 7 Oct, so Metropolis gets the full 8–12 Oct. **Solana Clock In was postponed to 12 Oct**, so it overlaps the Monad build days (8–12 Oct). Plan both together (see `TIMELINE.md`).
 
 | Day | Date | Build | Done when |
 |---|---|---|---|
@@ -554,7 +554,7 @@ Optional: in-memory rate limiting on the relayer. A Redis or KV store only if we
 | Risk | Mitigation |
 |---|---|
 | The ZK core slips | Lower risk because Gloam's working circuits, setup scripts and audit lessons are the reference. Our only changes are key-owned notes and 2 inputs. Safety gate at the end of Day 1: fall back to Gloam's simpler 1-in/2-out shape |
-| Solana Clock In (8 Oct) eats Day 1 | Decide today. If we enter it, Day 1 work shifts to Day 0 night and Day 5 morning |
+| Solana Clock In (12 Oct) runs in parallel | Split the days explicitly once we pick the Clock In project. Don't let both slip to 12 Oct |
 | Mera PRF unavailable in the judge's browser | The demo video uses Safari or iOS. The README lists supported authenticators. Read-only mode lets anyone browse without signing in |
 | MetaMask agent wallet signatures may not be deterministic | Fall back to a locally generated, encrypted key plus `mm veil export` |
 | X API impression delay or cost | Poll every 10 min. Pay only increases. Cap per post. State the delay |
