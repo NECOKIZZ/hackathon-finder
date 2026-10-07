@@ -11,12 +11,12 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 | Oct 4 | Arbitrum Open House | $115k | — | ✅ closed | |
 | Oct 5 | Road to Colosseum MVP · WeAreDevelopers × Band · Veles Hack | small | — | ✅ closed | |
 | Oct 6 (registration) · build Oct 9–11 | Qollab × IonQ Quantum | $10k + $20k compute | Animated explainer for "Quantum Unlocked" (motion-design skill) | 🟡 | 48h build clashes with BNB / Colosseum weekend |
-| Oct 8 | Solana Mobile: Clock In | $125k + $10k SKR | — | ⛔ | Needs an Android APK + dApp Store listing |
+| **Oct 8** (time not published; plan for end of day 7 Oct) | Solana Mobile: Clock In | $125k + $10k SKR | TBD (brainstorm) | 🟡 | Reconfirmed 7 Oct. Needs an Android APK, repo, demo video, pitch deck. dApp Store listing only required for winners. Falls **before** Monad, not after |
 | Oct 8 | Bitget AI Hackathon S2 | $50k USDT (unverified) | Delphi | ⛔ | Rules not found; too soon |
 | Oct 9 | HackCanton S3 | $50k | — | ⛔ | DAML, not our stack |
 | Oct 10–11 | #neathack | $10k | — | ⛔ | Clashes |
-| **Oct 11, 12:00 UTC** | **BNB Hack: Tokenized Stocks** | $20k + 2 × $2k specials | **003 ETF League** (or 002 Busha for Stocks / weekend spread engine) | 🎯 | Ondo / xStocks / bStocks central, BSC mainnet, spot only. Dev-experience report = 25% |
-| **Oct 12, 11:59pm PT** | **Colosseum Crypto World's Fair** | $840k total; Robinhood Chain track 5 × $5k; 20 × $15k standouts | **Kickoff** (+ Monday Open markets as new work) | 🎯 | Pre-existing code allowed if disclosed; judged on work since Sep 14. One submission per team |
+| **Oct 11, 12:00 UTC** | **BNB Hack: Tokenized Stocks** | $20k + 2 × $2k specials | **003 ETF League** (or 002 Busha for Stocks / weekend spread engine) | 🎯 | Deadline reconfirmed 7 Oct. Nearly done. Ondo / xStocks / bStocks central, BSC mainnet, spot only. Dev-experience report = 25% |
+| **Oct 12, 11:59pm PT** | **Colosseum Crypto World's Fair** | $840k total; Robinhood Chain track 5 × $5k; 20 × $15k standouts | **Kickoff** (+ Monday Open markets as new work) | 🎯 Submitting 7 Oct | Pre-existing code allowed if disclosed; judged on work since Sep 14. One submission per team |
 | **Oct 13** | **Monad Metropolis** | $250k+ (tracks + ~$81k bounties) | **Veil: private payments layer** (x402 for agents, payroll, KOL streams; absorbs 001). Track 04 + Mera ×2, MetaMask, Envio, Agora, CRE | 🎯 | New work since Sep 1. Plan: `2026-10-monad-metropolis/BUILD.md` |
 | Oct 13 (registration) · build Oct 15–20 | Open Agent Hackathon | up to $20k | 007 Agent Compute Staking | 🟡 | Prize detail not public |
 | **Oct 14** | **Arc Microgrants Mainnet Challenge** | 20 × $500 USDC | Synesis / Cuerate / `.arc` redeployed on Arc mainnet | 🎯 | Rolling review: submit early |
@@ -26,7 +26,7 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 | **Oct 19** | Midnight Buildathon **Wave 2** | $4k, split by points (6 submissions so far) | — | 🟡 | Probably too soon. Wave 3 is the target |
 | Oct 23 | Amazon Developer Hackathon | $138k | — | ⛔ | Fire TV / Alexa+ / Ring |
 | Oct 25 | Web3 for Social Good (SMU) | Pending | — | ⛔ | In-person final in Singapore |
-| **Oct 28, 23:59 UTC** | **Zecathon** (Zcash privacy) | $100k: 5 tracks × $15k + $20k grand prize | **004 Proof of Funds** (Core & Tooling) or **005 Ajo** (Shielded Payments) | 🎯 | Code written in window, open source, one submission per account |
+| **Oct 28, 23:59 UTC** (site: "Submissions due Oct 28", reconfirmed 7 Oct) | **Zecathon** by zkSNARKs (Zcash privacy) | $100k: 5 tracks × $15k + $20k grand prize | **004 Proof of Funds** (Core & Tooling) or **005 Ajo** (Shielded Payments) | 🎯 | Code written in window, open source, one submission per account |
 | Oct 30 | Qloo Agentic Hackathon | $25k | 001 variant (taste-matched KOLs) | 🟡 | |
 | Oct 30 | Nebius × NVIDIA Global AI | $50k+ | 007 (Nebius GPUs as compute supply) | 🟡 | |
 | Oct 31 | MDBA Youth Blockchain Hackathon | unknown | — | ⛔ | Youth-only |

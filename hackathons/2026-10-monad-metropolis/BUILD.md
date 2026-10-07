@@ -1,6 +1,6 @@
 # Monad Metropolis — BUILD.md
 
-**Written:** 2026-10-07 · **Deadline:** 13 Oct 2026 (submit on **12 Oct**, keep the 13th as buffer) · **Working name:** `Veil` (placeholder; rename before the domain is fixed, see §9 Day 0)
+**Written:** 2026-10-07 · **Deadline:** 13 Oct 2026 (submit on **12 Oct**, keep the 13th as buffer) · **Name:** `Veil` (fix the domain on Day 0, because Mera passkeys are tied to it)
 
 This is the build plan for a **self-custodial private payments layer on Monad**. One shielded core powers three products:
 1. Private agent payments over x402.
@@ -18,7 +18,8 @@ Every sponsor integration below was chosen because the product needs it, not as 
 | Track | **04 Trust, Identity & AI Infra** (alternative: 02) | Their "best fit" is "cryptography, protocol design, agent frameworks". We're a ZK pool plus agent payments, using passkey accounts (Mera) and ERC-8004, both named in the track. Track 02 also fits (payroll, streams), but it's the most crowded track. If the portal already has a track locked, check whether it can be changed |
 | Privacy core | **Our own key-owned UTXO pool**, with proofs generated on the user's device (Groth16, circom). **One pool contract per asset** | Our edge over what's already on Monad (§2): no operator ever sees anything. Separate pools per asset remove the bug class behind Gloam's worst finding (H1 cross-asset drain) |
 | Circuit | **One circuit**: 2 notes in, 2 notes out. A signed `publicAmount` covers deposits, private transfers and withdrawals | One circuit, one verifier and one trusted setup to get right in 6 days |
-| Plan B | If the core isn't green end-to-end on testnet by **end of 8 Oct**, switch the privacy core to the **Unlink SDK on `monad-testnet`** and keep every product on top | Protects the deadline. We lose the "no operator" edge, so this is a fallback, not the plan |
+| How we use Gloam | **Gloam is the map for the ZK core**: circom and snarkjs setup scripts, the Poseidon tree and its zero values, verifier wiring, network registry, tree sync, relay, and its audit lessons (§7). We change only what our products need: key-owned notes (no x402 "sweep") and 2 notes in (payroll needs merging) | Most of the hard parts are already solved in Gloam's repo, so the core is a guided build, not research |
+| Safety gate | If deposit → transfer → withdraw isn't green on testnet by **end of 8 Oct**, fall back to Gloam's simpler 1-in/2-out circuit shape (written by us). Unlink is a last resort | Keeps the deadline safe without giving up the "no operator" edge |
 | Onboarding | **Mera** passkeys as the only wallet layer. No Privy or Dynamic | Mera is Monad's own tool, and "One Passkey, Many Keys" fits our key tree exactly (§5.1). Mixing wallet SDKs weakens every one of those bounties |
 | Assets | **USDC** first, then **AUSD**. A CVA token pool only if Cleanverse gives us one | USDC has x402 and Aurora support. AUSD is the largest stablecoin on Monad and the target of Agora's $10k bounty |
 | Networks | Build on **testnet (10143)**. Ship a **capped mainnet (143)** deployment on day 5 | MetaMask Agent Wallet writes work reliably only on mainnet (§5.2). Being live on mainnet with caps also beats Unlink's gated mainnet |
@@ -463,9 +464,34 @@ veil-monad/
 
 ---
 
+## 8b. Infrastructure: no database
+
+Nearly everything lives on-chain or on the user's device. **We run no database.**
+
+| State | Where it lives | Why that's enough |
+|---|---|---|
+| Notes, Merkle tree, spent nullifiers | **On-chain** (`VeilPool` events and storage) | The pool contract is the source of truth |
+| Encrypted note contents (amount, blinding) | **On-chain**, in the `NewCommitment` event | Any device with the passkey can rescan and rebuild the wallet |
+| Fast reads (tree sync, history, dashboards) | **Envio hosted indexer** | A managed index of on-chain events. We don't operate it, and we can rebuild it from the chain at any time. The SDK falls back to RPC |
+| A user's notes and keys | **Device**: browser storage encrypted with the passkey-derived key, or a local file for the mm plugin | A cache only. Losing it loses nothing, because a rescan from the passkey restores it |
+| Campaigns, KOL registrations, stream state, payouts | **On-chain** (`StreamVault` clones) | CRE reads them from the chain and writes reports back |
+| Payroll CSV, claim links | Browser memory; claim secret in the **URL fragment** (never sent to a server) | Nothing to store |
+| Agent caps (`mm veil guard`) | Local plugin config file | Per agent, per machine, like MetaMask's own policy |
+| X API token, deployer key, relayer key | CRE secrets / env vars | No user data |
+
+**What we run:**
+1. The Next.js app and the relayer/facilitator, which can be Vercel API routes. The relayer is **stateless**: it checks each proof against the chain and holds only a funded MON gas key.
+2. The demo paid API.
+3. Envio hosted.
+4. The CRE workflow (in simulation, or on Chainlink's network with Early Access).
+
+Optional: in-memory rate limiting on the relayer. A Redis or KV store only if we add per-merchant analytics, which we don't need for the hackathon.
+
+---
+
 ## 9. Day-by-day plan
 
-**Calendar clash:** BNB Hack (11 Oct, 12:00 UTC) and Colosseum World's Fair (12 Oct) are also marked 🎯 in `TIMELINE.md`. This plan needs about 5 full days. **Decide today which of the three gets dropped or reduced.** Otherwise all three will be weak.
+**Calendar:** BNB Hack is nearly done and Colosseum is being submitted on 7 Oct, so Metropolis gets the full 8–12 Oct. **Solana Clock In closes 8 Oct**, so if we enter it, it costs the first Monad build day (see `TIMELINE.md`).
 
 | Day | Date | Build | Done when |
 |---|---|---|---|
@@ -527,8 +553,8 @@ veil-monad/
 
 | Risk | Mitigation |
 |---|---|
-| The ZK core slips (circuits are the long pole) | Plan B gate at the end of Day 1 (Unlink testnet). Keep the circuit minimal: one circuit, no extra features |
-| Overloaded calendar (BNB on 11 Oct, Colosseum on 12 Oct) | Decide today (§9) |
+| The ZK core slips | Lower risk because Gloam's working circuits, setup scripts and audit lessons are the reference. Our only changes are key-owned notes and 2 inputs. Safety gate at the end of Day 1: fall back to Gloam's simpler 1-in/2-out shape |
+| Solana Clock In (8 Oct) eats Day 1 | Decide today. If we enter it, Day 1 work shifts to Day 0 night and Day 5 morning |
 | Mera PRF unavailable in the judge's browser | The demo video uses Safari or iOS. The README lists supported authenticators. Read-only mode lets anyone browse without signing in |
 | MetaMask agent wallet signatures may not be deterministic | Fall back to a locally generated, encrypted key plus `mm veil export` |
 | X API impression delay or cost | Poll every 10 min. Pay only increases. Cap per post. State the delay |
