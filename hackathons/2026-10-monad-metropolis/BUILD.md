@@ -1,624 +1,1058 @@
-# Monad Metropolis — BUILD.md
+# Veil — BUILD.md (Monad Metropolis)
 
-**Written:** 2026-10-07 · **Deadline:** 13 Oct 2026 (submit on **12 Oct**, keep the 13th as buffer) · **Name:** `Veil` (fix the domain on Day 0, because Mera passkeys are tied to it)
+**Version 2 · 2026-10-08.** Deadline: **13 Oct 2026**. We submit on **12 Oct**, and the 13th is buffer only.
+**Name:** Veil. **Chain:** Monad (testnet `10143`, mainnet `143`). **Track:** 04 Trust, Identity & AI Infra.
 
-This is the build plan for a **self-custodial private payments layer on Monad**. One shielded core powers three products:
-1. Private agent payments over x402.
-2. Private payroll.
-3. Private payment streams from founders to KOLs. This is our own addition, and it absorbs idea 001.
+This is a build playbook for the coding agent that will build Veil. It is written to be followed step by step.
 
-Every sponsor integration below was chosen because the product needs it, not as decoration. Read §0 and §2 first.
+**What ships with this file (the `veil-handoff` bundle):**
 
----
-
-## 0. Decisions at a glance
-
-| Decision | Choice | Why |
+| Folder | What it is | How to use it |
 |---|---|---|
-| Track | **04 Trust, Identity & AI Infra** (alternative: 02) | Their "best fit" is "cryptography, protocol design, agent frameworks". We're a ZK pool plus agent payments, using passkey accounts (Mera) and ERC-8004, both named in the track. Track 02 also fits (payroll, streams), but it's the most crowded track. If the portal already has a track locked, check whether it can be changed |
-| Privacy core | **Our own key-owned UTXO pool**, with proofs generated on the user's device (Groth16, circom). **One pool contract per asset** | Our edge over what's already on Monad (§2): no operator ever sees anything. Separate pools per asset remove the bug class behind Gloam's worst finding (H1 cross-asset drain) |
-| Circuit | **One circuit**: 2 notes in, 2 notes out. A signed `publicAmount` covers deposits, private transfers and withdrawals | One circuit, one verifier and one trusted setup to get right in 6 days |
-| How we use Gloam | **Gloam is the map for the ZK core**: circom and snarkjs setup scripts, the Poseidon tree and its zero values, verifier wiring, network registry, tree sync, relay, and its audit lessons (§7). We change only what our products need: key-owned notes (no x402 "sweep") and 2 notes in (payroll needs merging) | Most of the hard parts are already solved in Gloam's repo, so the core is a guided build, not research |
-| Safety gate | If deposit → transfer → withdraw isn't green on testnet by **end of 8 Oct**, fall back to Gloam's simpler 1-in/2-out circuit shape (written by us). Unlink is a last resort | Keeps the deadline safe without giving up the "no operator" edge |
-| Onboarding | **Mera** passkeys as the only wallet layer. No Privy or Dynamic | Mera is Monad's own tool, and "One Passkey, Many Keys" fits our key tree exactly (§5.1). Mixing wallet SDKs weakens every one of those bounties |
-| Assets | **USDC** first, then **AUSD**. A CVA token pool only if Cleanverse gives us one | USDC has x402 and Aurora support. AUSD is the largest stablecoin on Monad and the target of Agora's $10k bounty |
-| Networks | Build on **testnet (10143)**. Ship a **capped mainnet (143)** deployment on day 5 | MetaMask Agent Wallet writes work reliably only on mainnet (§5.2). Being live on mainnet with caps also beats Unlink's gated mainnet |
-| Gloam | **Reference only.** We read how they did things on other chains. **No copied code.** Credit it in the README as design inspiration | New-work rule plus honesty. We already have read access to the public repo (`/home/user/cryptoduke01/gloam`), so you don't need to download it |
-
-**Bounties we go for:**
-- **Core:** Mera ×2, MetaMask Agent Wallet Plugin, Envio, Agora Cross-Border, Chainlink CRE. That's **$21.5k**.
-- **Add if on schedule:** Cleanverse ($2k), Aurora ($5k).
-- **Optional:** Nansen ($5k).
-- **Skip:** Privy and Dynamic (they conflict with Mera), Kuru, Perpl, Community.
+| `reference-kit/` | **Working, tested reference code**: the ZK circuit, the pool contract, the stream vault, the Cleanverse verified pool, and a JS core that builds proofs. Verified 2026-10-08: 13/13 Forge tests, 31/31 end-to-end checks on anvil, 6/6 circuit attack tests | **Start from this.** Copy it into the new repo in Phase 1, then extend it |
+| `gloam/` | Snapshot of github.com/cryptoduke01/gloam: a ZK privacy pool by another builder, live on Robinhood Chain and Tempo | **Read-only reference.** It shows how a working pool was built, deployed and debugged on other chains. Read the matching Gloam file before each module (§4). **Never copy its code** |
+| `reference-repos/` | `monagent` and `mm-plugin-perpl` (MetaMask Agent Wallet plugins on Monad); `trustflow` and `spendclear-cleanverse` (Cleanverse integrations on Monad) | Patterns for the mm plugin (Phase 7) and the Cleanverse adapter (Phase 9) |
+| `docs-offline/` | Full text of the MetaMask Agent Wallet docs, Mera guide, Chainlink CRE TS docs, Envio docs and Aurora Intents docs | Search these before guessing an API. They are newer than your training data |
 
 ---
 
-## 1. What we're building
+## 0. Rules for the agent (read first)
 
-> **Pay people and agents on Monad without publishing your payroll, your marketing budget or your agent's spending history. Only the payer and payee see the amount. You can prove any payment to anyone you choose.**
+1. **Follow the phases in order.** Each phase ends with "Done when". Do not start the next phase until those checks pass. If a check can't pass, stop and report exactly what fails.
+2. **Never change the crypto conventions in §3.** Every piece (circuit, contract, SDK, indexer, relayer, plugin) depends on them: the hash order, the public-input order, the ExtData encoding and the memo formats. If you think one is wrong, stop and ask.
+3. **Never weaken a check to make something pass.** Don't delete or skip a test, don't remove a `revert`, don't set a verifier to always return `true`, and don't mock a proof.
+4. **UI and visual design are up to you.** This file specifies flows, data and error states, not looks. Keep the UI honest: never show a success that didn't happen on-chain.
+5. **Never use real money above the caps in §16.** Mainnet is a capped beta.
+6. **Secrets only in environment variables:** deployer key, relayer key, X token, API keys. Never commit them. Never prefix server secrets with `NEXT_PUBLIC_`.
+7. **New-work rule (hackathon):** create a **fresh public repo** today. Every commit must be made now (Oct 8–12). Gloam is **reference only**. In the README, credit Gloam (design inspiration, MIT), Tornado Nova (the 2-in/2-out design), circomlib, snarkjs, Mera, x402, CRE and Envio.
+8. **When a doc and this file disagree on an external API** (Mera, CRE, Envio, MetaMask, Aurora, x402), the doc in `docs-offline/` wins. Note the difference in `docs/NOTES.md`.
+9. **Monad charges the gas LIMIT you set, not the gas used.** Always estimate, multiply by 1.15, and pass that as `gas`. Never hardcode a big number.
+10. **Commit small and often.** Use clear messages, and push at the end of every phase.
+
+---
+
+## 1. What we are building
+
+> **Pay people and agents on Monad without publishing your payroll, your marketing budget or your agent's spending history. Only the payer and payee see the amount. Proofs are made on your own device; there is no operator who can see anything.**
+
+One shielded pool per stablecoin powers four surfaces:
 
 | Surface | User | What they do |
 |---|---|---|
-| **Web app** (Next.js) | Founders, finance teams, KOLs | Passkey sign-in (Mera). Deposit USDC or AUSD (or fund from any chain via Aurora). Private send, payroll from a CSV, campaigns that pay KOLs per verified impression, withdraw, share a receipt |
+| **Web app** (Next.js) | Founders, finance teams, KOLs, contractors | Passkey sign-in (Mera). Deposit USDC or AUSD, or fund from any chain (Aurora). Send privately. Run payroll from a CSV. Create a KOL campaign and fund it privately. Withdraw. Share a receipt. Verify a receipt |
 | **MetaMask Agent Wallet plugin** (`mm veil …`) | AI agents and their owners | An agent pays other agents and paid APIs privately, within caps its owner sets |
-| **x402 `shielded` scheme + facilitator** | API sellers and agent buyers | A paid API accepts private payments next to the standard public `exact` scheme |
-| **Campaign / stream vault + CRE workflow** | Founders → KOLs | The budget streams to KOLs as private notes, per verified X impression (or per second for salaries) |
+| **x402 `shielded` scheme** (merchant middleware + relayer) | API sellers and agent buyers | A paid API accepts private payments next to the normal public `exact` scheme |
+| **StreamVault + Chainlink CRE workflow** | Founders → KOLs, employers → staff | The budget streams out as private notes, per verified X impression (CRE) or per second (salaries) |
 
-The demo moments judges remember:
-1. An agent buys an API call. The explorer shows a shielded transaction and nothing else. Settled in about 1–2 s.
-2. Payroll for 5 people in Lagos and Nairobi paid in AUSD, with no amounts on-chain.
-3. A KOL's private balance climbs while their post's impressions climb. The project's treasury never appears anywhere.
+**Positioning versus what Monad already has** (use this in the README and write-up):
 
----
-
-## 2. Positioning: what Monad already has, and our angle
-
-| | How it works | Who sees your payments | Status on Monad | Gap we fill |
-|---|---|---|---|---|
-| **Unlink** | ZK notes, but **its engine generates the proofs on its own servers and keeps users' viewing and nullifier keys** ("the Engine retains them to decrypt note memos") | The Unlink engine (operator) | Mainnet needs an **access grant**. Open on testnet | No operator at all. Proofs are made on the user's device |
-| **TACEO Merces** | MPC nodes plus collaborative ZK | The MPC network. Compliance attestation required | Mainnet "limited access", private USDC with caps | Permissionless and self-custodial |
-| **Category Labs** | "Privacy is coming". Teaser on 6 Oct, aimed at institutions | Unknown | Not launched | Built for people and agents now, not institutions later |
-| **Gloam** (other chains) | Bearer-secret notes, 1 note in and 2 out, separate circuits for shield, transfer and unshield | Nobody | Not on Monad | Our own design for Monad: key-owned notes, merging notes, proof-bound relaying, streams |
-
-**Pitch line:** *"Unlink and Merces bring privacy to institutions through an operator. Veil gives it to people and their agents directly: proofs made on your own device, nothing for anyone to see, settled in one Monad block."*
-
-**What we never claim:** "audited", "production-ready", or "untraceable". Deposit and withdrawal amounts are public, and so is timing. Say so (§6).
-
----
-
-## 3. Rules we build under
-
-1. **New-work rule.** Use a fresh public repo (`veil-monad`) with every commit made from 7 Oct on. The README has a "Prior art and dependencies" section that names Gloam (design reference, MIT), Tornado Nova (the 2-in/2-out design), circomlib, snarkjs, `poseidon-solidity`, `@category-labs/mera`, x402 and the CRE SDK.
-2. **No copied Gloam code.** Read Gloam for how it handled each chain's quirks (§7). Write our own code. When a Gloam lesson shapes a decision, cite the Gloam doc in our design notes. That shows the work is our own.
-3. **Honesty.** Disclose the dev trusted setup, testnet status, mainnet caps and the privacy limits in the README and the write-up. Never show a fake private success.
-4. **KOL streams pay only for disclosed ads.** The CRE workflow checks that the post contains the sponsor disclosure (`#ad` or the platform's paid-partnership label) and tags the project before paying anything. We make payment private, not sponsorship.
-
----
-
-## 4. Architecture
-
-```
-                         ┌──────────────── Mera passkey (one passkey → HD key tree) ─────────────────┐
-                         │ m/…/0 public EOA (gas, deposits) · m/…/1 shielded spend key · m/…/2 view+enc key │
-                         │ m/…/10+i agent sub-accounts · m/…/100+j campaign admin keys                     │
-                         └────────────────────────────────────────────────────────────────────────────┘
-   Web app (Next.js)            mm plugin (`mm veil …`)            Paid API (x402 seller)
-        │  proves in browser          │ proves in Node                 │ 402 → accepts [shielded, exact]
-        ▼                             ▼                                ▼
-   ┌────────────────────── @veil/sdk (TS): keys · notes · prover · encrypt · tree sync · tx build ──────┐
-   └─────────────────────────────────────────────┬──────────────────────────────────────────────────────┘
-                                                 │ proof + extData (recipient, relayer, fee, encrypted outputs bound in proof)
-                                                 ▼
-                     Relayer / x402 facilitator (Hono)  ── screens (OFAC list, Nansen opt.) ── pays gas in MON
-                                                 │
-   Monad ─────────────────────────────────────────▼──────────────────────────────────────────────────────
-   VeilPool[USDC] · VeilPool[AUSD] · (VeilPool[CVA])      ← Groth16 verifier (2-in/2-out), Poseidon tree depth 20
-        ▲ depositTo(pubKey, amount) (on-chain commitment, no proof)
-   StreamVault (per campaign clone) ◄── CRE KeystoneForwarder.onReport(postId, impressions) ◄── CRE workflow (X API)
-   ERC-8004 Identity/Reputation (agents + merchants)       Cleanverse CVI adapter (deposit/withdraw gate on CVA pool)
-        │ events
-        ▼
-   Envio HyperIndex (GraphQL): commitments + encrypted outputs + nullifiers + campaigns → tree sync, note discovery, dashboards
-   Aurora Intents (confidential swap) ── fund from any chain → USDC on Monad → shield
-```
-
----
-
-## 5. Sponsor integrations, in depth
-
-Each subsection covers why the sponsor is core to the product, what we build, the demo moment and the effort. Bounty text sits behind the portal login. **Read every one in the portal on Day 0** and adjust here.
-
-### 5.1 Mera: "Best Mera-Powered UX" + "One Passkey, Many Keys" ($2.5k + $2.5k) · **Core**
-
-**Facts:**
-- Package: `@category-labs/mera`.
-- `createPasskeyWithPrfOutput()` / `getPasskeyPrfOutput()` produce 32 bytes. These become a BIP-39 mnemonic, then a seed, then keys via `deriveEvmKey()` on path `m/44'/60'/0'/0/{index}`.
-- `createSecp256k1SigningSession()` → `toViemAccount()`.
-- Requires the WebAuthn **PRF** extension. Works with iCloud Keychain, 1Password and Google Password Manager. On desktop Chrome, only Google Password Manager passkeys work; locally saved Chrome passkeys throw `PRF_UNAVAILABLE`.
-- **The passkey is tied to the `rpId` (domain).** Change the domain and every user loses their account.
-
-**Why it's core:** a private wallet has more keys than a normal one. One passkey gives the whole key tree:
-
-| Index | Key | Used for |
-|---|---|---|
-| 0 | Public EOA (secp256k1) | Gas, the public side of deposits and withdrawals, ERC-8004 identity |
-| 1 | **Shielded spend key** → `spendPriv = H(child₁) mod p`, `pubKey = Poseidon(spendPriv)` | Owning and spending notes |
-| 2 | **View and encryption key** (x25519 from `child₂`) | Decrypting incoming notes. **Shareable with an auditor** without giving away spending power |
-| 3 | **At-rest key** (AES-GCM from `child₃`) | Encrypting the local note store, which fixes Gloam's audit finding M-1 (secrets stored in plaintext localStorage) |
-| 10 + i | **Agent sub-accounts** | Each agent gets its own shielded balance and caps. Revoke an agent without touching the main balance |
-| 100 + j | **Campaign admin keys** | One fresh key per KOL campaign, so campaigns can't be linked to each other or to the treasury |
-
-**Demo moment:** Face ID once → an "Accounts" panel shows the main balance, a view key shared with the accountant, two agent accounts and three campaigns, all from one passkey. Then restore on a phone with the same passkey and everything is back.
-
-**Effort:** 0.5 day. **Risks:**
-- The PRF limit on desktop Chrome, so demo on Safari or iOS.
-- Fix the production domain before any real passkey is created.
-
-### 5.2 MetaMask: "Best Agent Wallet Plugin" ($2.5k) · **Core**
-
-**Facts** (from `docs.metamask.io/llms-agent-wallet-full.txt` and existing Metropolis entries):
-- **Packaging:**
-  - A plugin is an npm package with the `oclif-plugin` keyword and an `@metamask/agent-wallet` **peer** dependency.
-  - Its `mm` manifest block declares `schemaVersion: 1`, `minCliVersion`, and `commands[]` with `capabilities` (`wallet-read`, `wallet-submit`), `dataAccess` and `targetChains`.
-  - Start from the template at `github.com/MetaMask/agent-wallet-plugin-template`.
-- **Writing commands:**
-  - Commands extend `PluginCommand` and implement only `execute(io)`.
-  - `ctx.walletExecutor(io, id)` handles transactions, message signing and typed-data signing, all **policy-gated by MetaMask** (simulation, Blockaid, Guard Mode allowlists, rolling 24-hour outflow limit, 2FA).
-  - `ctx.publicClient(chainId)` does reads.
-  - Plugins run in-process and unsandboxed. The session, token and mnemonic are never exposed.
-- **Chains:**
-  - Monad `143` is covered.
-  - **Testnet writes fail** with "Invalid chainId" through MetaMask's RPC proxy (MonAgent's report). The Perpl plugin works around it by declaring the chain in `~/.metamask/wallets.json` → `data.customEvmChains`.
-- **x402:** the built-in helper only supports public `exact` / EIP-3009.
-- **Competition:**
-  - MonAgent already covers public x402 payments and ERC-8004.
-  - The Perpl plugin introduced the "enrolled key + plugin's own guard" pattern.
-  - **No one has done private payments.**
-
-**What we build (`@veil/mm-plugin`):**
-
-| Command | Capability | What it does |
-|---|---|---|
-| `mm veil setup` | `wallet-submit` (typed-data) | Enrolls a shielded key for this agent. It derives from an EIP-712 signature if signatures turn out deterministic (**test on Day 3**). Otherwise it generates the key locally and encrypts it at rest. Prints a `veil1…` address |
-| `mm veil deposit --amount --asset` | `wallet-submit` | Approve, then `transact` with a deposit proof, both through MetaMask's executor, so MetaMask's policy and simulation cover money **entering** the pool |
-| `mm veil balance` / `history` | `wallet-read` | Reads from the Envio index, decrypts with the view key |
-| `mm veil pay --to veil1… --amount` | none (relayed) | Generates the proof locally and submits through the relayer, so the agent's wallet never appears |
-| `mm veil x402 fetch <url> --max` | none | Pays a 402 endpoint with the `shielded` scheme, falling back to `exact` only if allowed |
-| `mm veil guard set/get` | none | **The plugin's own caps**: per-payment, rolling 24 h, payee allowlist, expiry. Required because relayed private spends bypass MetaMask's outflow policy. Say so explicitly in the README (the Perpl plugin did the same) |
-| `mm veil withdraw --to 0x…` | none | Relayed. The recipient is bound inside the proof |
-| `mm veil receipt <tx>` | none | Prints a disclosure the payee or an auditor can verify (§6.5) |
-
-Also ship `skills/veil-payments/SKILL.md` so Claude Code, Codex and others drive it safely: read first, confirm writes, never retry blindly, stop on `[AWAITING_MFA]`.
-
-**Demo moment:** a Claude Code agent with `mm` buys three API calls. MetaMask shows the one-time deposit under Guard Mode. The explorer shows three shielded pool transactions and none from the agent's address. `mm veil guard get` shows the remaining daily cap.
-
-**Effort:** 1 day. **Risks:**
-- Plugins are beta. Pin `@metamask/agent-wallet@7`.
-- Symlink the host's `@metamask/agent-wallet` into `node_modules`, or the consent hook fails. The Perpl plugin README documents this.
-
-### 5.3 x402 and Monad's facilitator (no bounty; Monad's own priority) · **Core**
-
-**Facts:**
-- Facilitator: `https://x402-facilitator.molandak.org` (`/supported`, `/verify`, `/settle`). It **pays gas** and supports mainnet and testnet.
-- Use `@x402/evm >= 2.22.0`.
-- Monad USDC uses the EIP-712 domain `name: "USDC"`, `version: "2"`.
-- USDC addresses: mainnet `0x754704Bc059F8C67012fEd69BC8A327a5aafb603`, testnet `0x534b2f3A21130d7a60830c2Df862319e593943A3`.
-- Schemes: `exact` (EIP-3009) and `upto` (Permit2).
-
-**What we build:** a custom x402 v2 scheme named **`shielded`** on `eip155:143` / `eip155:10143`.
-1. The server's 402 response lists `accepts: [{scheme:"shielded", payTo:"veil1…", asset, amount}, {scheme:"exact", …Monad facilitator…}]`.
-2. The client builds a 2-in/2-out transfer to `payTo`. The payment output is **encrypted to the payee's view key**. The relayer fee is bound in `extData`.
-3. The client retries with `PAYMENT-SIGNATURE` = `{proof, publicInputs, extData}`.
-4. **Our facilitator** checks, in under 50 ms:
-   - The proof verifies (snarkjs).
-   - The root is known.
-   - The nullifiers are unspent.
-   - `extDataHash` matches.
-   - It decrypts the output with the merchant's view key, which the merchant runs itself or delegates, and checks the amount and asset.
-   It then submits `transact` and waits for receipt (~0.6 s finality).
-5. The server returns 200.
-6. **No sweep step is needed**, unlike Gloam's design. Notes belong to the payee's key, so the payer can't spend them back.
-
-Merchants that receive public `exact` payments can opt into **auto-shield**: the facilitator calls `depositTo(merchantPubKey, amount)` (§6.2), so revenue still becomes private.
-
-**Demo moment:** run `curl` against the paid API → 402 → pay → 200, under 2 s, with no amount shown on the explorer. **Effort:** 0.75 day, shared with the relayer.
-
-### 5.4 Envio: "Best Use of Envio" ($1k) · **Core**
-
-**Facts:** HyperIndex supports Monad mainnet and testnet (HyperSync `https://monad-testnet.hypersync.xyz`). It runs event handlers and serves a GraphQL API, with hosted deploys.
-
-**Why it's core, not decoration:**
-- Monad's public RPCs cap `eth_getLogs` at **100 blocks** (QuickNode and the Foundation's RPC) or 1,000 blocks (Alchemy, Ankr), with blocks every 300 ms.
-- A wallet has to rebuild the Merkle tree from **every** commitment and trial-decrypt **every** encrypted output to find its notes. Over raw RPC that means thousands of calls. Gloam needed its own server endpoint for this (`/api/vault-leaves`). **Envio is our sync layer.**
-
-**What we build:**
-- Entities: `Commitment{index, value, encryptedOutput, pool, block}`, `Nullifier{value}`, `Pool{root, nextIndex, tvl}`, `Campaign{…}`, `StreamPayout{campaign, postId, amount}` (amounts public by design, §5.6), `RelayStat{…}`.
-- The SDK syncs from GraphQL, then **checks the rebuilt root against the on-chain `isKnownRoot`** (never trust the indexer blindly), falling back to RPC.
-- The transparency page and the campaign and KOL dashboards also read from Envio.
-
-**Effort:** 0.5 day.
-
-### 5.5 Agora: "Best Cross-Border Payments App" ($10k) · **Core**
-
-**Facts:**
-- AUSD on Monad: `0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a`, **6 decimals**.
-- It's an omnichain token (LayerZero OFT), with the same address on Ethereum.
-- **The issuer can mint, burn, pause and freeze, and there's no timelock** (Aave risk assessment).
-- It's the largest stablecoin on Monad.
-
-**Why it's core:**
-- Cross-border payroll and creator payouts are exactly where privacy matters. Today a Lagos contractor paid on-chain has their income and employer published.
-- AUSD is the **default unit** in the payroll and campaign screens, not one option among several.
-
-**What we build:**
-- A dedicated `VeilPool[AUSD]`.
-- Payroll: CSV upload, then a sequence of 2-in/2-out transfers in AUSD. Each run produces change notes for the next. With 300 ms blocks, 10 payees take about 15–25 s including proving.
-- Payees without a Veil address get a **claim link**: the note is encrypted to a one-time key carried in the URL fragment.
-- KOL campaigns are priced in AUSD.
-- x402 merchants can price in AUSD via the `shielded` scheme (EIP-3009 isn't needed, so AUSD works where `exact` might not).
-
-**Freeze risk:** if the issuer freezes the pool contract, every AUSD note is stuck. Gloam documented the same unfixable issue as F-2. Disclose it, keep caps, and keep USDC as a separate pool so one freeze can't touch the other.
-
-**Effort:** 0.5 day on top of the core. **Open:**
-- Read the bounty text.
-- Agora's Stablecoin API (mint/redeem to bank) needs a demo booking. Ask on Day 0, but don't depend on it.
-
-### 5.6 Chainlink CRE: "Best workflow with CRE" ($3k) · **Core (KOL streams)**
-
-**Facts:**
-- TypeScript SDK `@chainlink/cre-sdk`. Monad testnet needs CLI v1.30.0+ and SDK v1.19.0+.
-- Simulation is open to everyone. **Deploying to the live network needs Early Access** (`cre account access` or app.chain.link/cre/request-access).
-- `cre workflow simulate --broadcast` writes on-chain through a **MockKeystoneForwarder**.
-- The consumer contract implements `IReceiver.onReport` (use `ReceiverTemplate`).
-
-| Forwarder | Monad testnet | Monad mainnet |
-|---|---|---|
-| Simulation (`MockKeystoneForwarder`) | `0xB9F79d863261869B234c481D1f9A7af84AeAd192` | `0x9eF6468C5f37b976E57d52054c693269479A784d` |
-| Production (`KeystoneForwarder`) | `0xF8344CFd5c43616a4366C34E3EEE75af79a74482` | `0x76c9cf548b4179F8901cda1f8623568b58215E62` |
-
-**Why it's core:** CRE decides who gets paid. Several independent nodes fetch the post's numbers and agree on them before any money moves, so no server of ours sets a KOL's pay.
-
-**The workflow** (cron, every 10 min):
-1. Read active campaign posts from `StreamVault` (EVM read).
-2. For each post, call `GET /2/tweets?ids=…&tweet.fields=public_metrics,text,author_id` on the X API. The bearer token is a CRE secret.
-3. Nodes agree on the **median** `impression_count`.
-4. Validate: the `author_id` matches the registered KOL, and the text contains `#ad` plus the project tag.
-5. Encode `(campaign, postId, impressions, disclosedOk)` and write through the forwarder.
-6. `StreamVault._processReport` handles the rest:
-   - Pays only the increase (`max(0, new − last)`) × rate, capped per post and per campaign.
-   - Splits 80% paid now and 20% held back until the minimum post lifetime.
-   - Pays by calling `pool.depositTo(kolPubKey, amount, blinding, encOut)`.
-
-**Demo:** the simulation with `--broadcast` against testnet is enough to show it working. Also apply for Early Access on Day 0. If it's granted, deploy and show the production forwarder.
-
-**Effort:** 1 day (vault plus workflow). **Risks:**
-- X API cost and how fresh impression counts are (impressions update with a lag; say so).
-- How the bounty treats simulation versus deployment. Read the bounty text.
-
-### 5.7 Cleanverse: "Best Integration of CVI/CVA" ($2k) · **Add if on schedule**
-
-**Facts:**
-- CVI is an A-Pass identity credential bound to a wallet. CVA is a verified "A-Token" stablecoin.
-- Their own hackathon awarded **30 of 100 points for integration depth** — "whether verification is enforced where value actually moves".
-- Developer docs aren't public. Previous Monad entries (TrustFlow, SpendClear) coded against an `ICVI` / attestation-oracle interface with a mock, plus an adapter for Cleanverse's signed attestations.
-
-**What we build:** a **verified pool mode**.
-- `VeilPool[CVA]`, or a `verifiedOnly` flag on any pool, checks `cvi.isVerified(depositor)` on deposit and `cvi.isVerified(recipient)` on withdrawal. Every coin in the pool therefore came from a verified identity, and that is the anonymity set.
-- This is the "compliant privacy" story without an operator. The rules apply where tokens enter and leave the pool, and payments inside stay private.
-- Use a mock CVI on testnet and an adapter for real Cleanverse attestations.
-
-**Day 0:** ask Cleanverse (Discord or the portal) for sandbox access and the CVA token address on Monad. **Effort:** 0.5 day.
-
-### 5.8 Aurora Intents: "Bring Any-Chain Liquidity to Monad" ($5k) · **Add if on schedule**
-
-**Facts:**
-- The Swap API is `POST https://intents-api.aurora.dev/api/quote/{apiKey}`. Keys are self-serve from Intents Studio.
-- **Confidential Intents** is a single flag on the quote request. It hides the origin wallet and the route, but **settlement on the destination chain stays public**.
-- The widget supports `confidentialMode: public | confidential | user-choice`.
-- Monad tokens on the route: MON, **USDC**, USDT0 `0xe7cd86e13ac4309349f30b3435a9d337750fc82d`. **No AUSD**.
-- Persistent deposit addresses need Aurora's approval, so don't depend on them.
-- Integrator fee: 60% to us, 40% to Aurora.
-
-**Why it fits:** "fund your private balance from any chain without linking your old wallet."
-1. A confidential swap brings USDC from Base, Solana, Tron or elsewhere to the user's Mera EOA on Monad, so the origin is hidden.
-2. The app shields it straight away, so the destination is hidden too.
-3. Result: a private path from start to finish across chains.
-4. To get AUSD, users swap USDC → AUSD inside our app later (optional via Kuru Flow).
-
-**Effort:** 0.5 day.
-
-### 5.9 Nansen: "Best use of Nansen" ($5k) · **Optional**
-
-**Facts:**
-- Pay per call via x402 in **USDC on Monad**, with no API key.
-- `/api/v1/profiler/address/related-wallets` costs $0.01 and `/counterparties` costs $0.05.
-- **Label endpoints aren't available over x402.** Rate limit: 5 requests/s.
-
-**Possible use:**
-- The relayer screens the depositor (from the app) and every withdrawal recipient with `counterparties`. It refuses if the wallet's counterparties include flagged entities.
-- Pay for those calls with x402 on Monad from the relayer's own wallet.
-
-**Caveat:** this is an off-chain policy, not enforced by the contract. **Only build it if everything else is green.**
-
-### 5.10 Not pursuing
-
-- **Privy / Dynamic:** they conflict with Mera (pick one wallet layer).
-- **Kuru / Perpl:** no honest fit while private trading is out of scope (Gloam's H1 shows private swaps break solvency).
-- **Community:** we're a solo team.
-- **AI credits:** irrelevant.
-
-**ERC-8004** has no bounty, but register the merchant API and the demo agents for free alignment with Track 04:
-- Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
-- Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
-
----
-
-## 6. Protocol specification (what we write ourselves)
-
-### 6.1 Keys, notes, addresses
-
-```
-spendPriv        = H("veil-spend", child₁) mod p          // p = BN254 scalar field
-pubKey           = Poseidon(spendPriv)
-commitment       = Poseidon(amount, pubKey, blinding)     // one pool per asset → asset not in the note
-signature        = Poseidon(spendPriv, commitment, leafIndex)
-nullifier        = Poseidon(commitment, leafIndex, signature)
-veil address     = bech32m("veil", pubKey ‖ x25519EncPub)
-encryptedOutput  = x25519-XSalsa20-Poly1305(encPub_recipient, {amount, blinding})  // AEAD, so a fake memo can't be forged
-```
-
-### 6.2 Circuit `transaction2x2.circom` (depth 20)
-
-- **Public inputs (7):** `root, publicAmount, extDataHash, inNullifier[2], outCommitment[2]`.
-- **Constraints:**
-  1. For each input: `pubKey = Poseidon(privKey)`, the commitment opens, the nullifier is derived as above, and the Merkle path checks against `root` **when amount ≠ 0** (dummy inputs skip the path check).
-  2. For each output: the commitment opens and `Num2Bits(128)` holds on the amount.
-  3. `inNullifier[0] != inNullifier[1]`.
-  4. `Σin + publicAmount == Σout` in the field.
-  5. `extDataHash` is a public input that's only "used", meaning it's bound by being squared into a dummy constraint.
-- **Trusted setup:**
-  - Hermez `powersOfTau28_hez_final_16.ptau`, then a phase-2 setup with 2–3 contributions and a beacon.
-  - Commit the zkey hashes. Label it a **dev ceremony**.
-
-### 6.3 `VeilPool.sol` (one per ERC-20)
-
-- **`transact(Proof, ExtData)`**, where `ExtData = {recipient, extAmount (int256), relayer, fee, encOut1, encOut2}`:
-  - Require `isKnownRoot(root)` (**permanent** root history, so proofs made before a busy block still land).
-  - Require both nullifiers unspent and `extDataHash == keccak(abi.encode(extData)) % p`.
-  - Require `publicAmount == (extAmount − fee) mod p`, the proof verifying, and `|extAmount| ≤ cap`.
-  - Effects first: mark nullifiers spent, insert both commitments, emit `NewCommitment(commitment, index, encOut)` ×2 and `NewNullifier` ×2.
-  - Interactions last:
-    - If `extAmount > 0`: `transferFrom(msg.sender)`.
-    - If `extAmount < 0`: `transfer(recipient)`.
-    - If `fee > 0`: `transfer(relayer)`.
-  - Use SafeERC20 and `nonReentrant`.
-- **`depositTo(pubKey, amount, blinding, encOut)`** (no proof; used by `StreamVault`, auto-shield and payouts):
-  - The contract **computes** `commitment = Poseidon(amount, pubKey, blinding)` on-chain, so the amount is bound and Gloam's C1 bug can't happen.
-  - Then `transferFrom(msg.sender)`.
-  - Trade-off: it reveals that this pubKey received this amount. Spends stay unlinkable, because nullifiers need `spendPriv`. Use per-campaign or one-time pubKeys.
-- **Merkle tree:** incremental Poseidon tree (`poseidon-solidity` `PoseidonT3`), with precomputed zero values.
-- **Admin:**
-  - Owner can **pause deposits only** and **lower** caps. No function moves pool funds. Verifier immutable.
-  - Ownership is two-step.
-  - Gloam's M-4 lesson: no reversible protections and no `emergencyWithdraw` pretending to be a backstop.
-- **Gas on Monad:**
-  - Monad charges 5× Ethereum's gas for pairing checks, so one verify is about 0.9M gas for pairings plus about 0.2M for the scalar multiplications on 7 public inputs.
-  - Add about 0.45M for two tree inserts. Budget about 1.8M per `transact`.
-  - **Monad charges the gas limit you set, not the gas used.** Estimate, then add 15%. Never hardcode 5M.
-
-### 6.4 Relayer and x402 facilitator (one Hono service)
-
-- **Endpoints:**
-  - `POST /relay` takes `{proof, extData}`. Same checks as the contract, plus `eth_call` dry-run, then send.
-  - `POST /x402/verify` and `POST /x402/settle` implement the `shielded` scheme.
-  - `GET /status`.
-- **Rules:**
-  - The relayer can only submit or refuse. The recipient and fee are bound in the proof.
-  - Screening: an OFAC list snapshot on withdrawal recipients, optionally Nansen.
-  - Rate limits per IP and per merchant.
-  - **The relayer never holds keys or notes.**
-- **Meta-transactions:** for campaign admin actions, so a campaign key never needs MON and can't be linked by its gas funding.
-
-### 6.5 Disclosure (no extra circuit)
-
-- **Receipt:** reveal one note's `{amount, pubKey, blinding, leafIndex}`. The verifier recomputes the commitment, finds it at `leafIndex` via Envio, and checks the on-chain root. This proves "X paid Y this amount" and nothing else.
-- **Auditor view:** share the index-2 view key, which decrypts everything incoming and nothing spendable.
-- **Stretch:** proof of funds ≥ X needs a new circuit. Skip it.
-
-### 6.6 `StreamVault` (one clone per campaign, made by a factory)
-
-- **Funding:** the project withdraws from its shielded balance **to the vault address** via the relayer. Its treasury never appears.
-- **Meters:**
-  - `ImpressionMeter`: CRE `onReport`, §5.6.
-  - `TimeMeter`: `drip()`, callable by anyone, pays `elapsed × ratePerSecond` for salaries and subscriptions (Track 02's per-second example).
-- **Payouts:** `pool.depositTo(kolPubKey, amount, blinding = Poseidon(campaign, postId, epoch), encOut)`.
-- **Holdback:** released after the minimum post lifetime, or refunded to the project's pubKey if the post is deleted.
-- **Caps:** per post, per KOL and per campaign. Unspent budget goes back to the project's shielded address.
-- **Visibility:** the rate and per-post payouts are **public by design**, since CRE math runs on-chain. The KOL's wallet, their combined earnings across campaigns, and where they cash out stay private. Say this plainly in the write-up.
-
----
-
-## 7. Lessons from Gloam (read before writing code)
-
-Each source is a Gloam doc in `/home/user/cryptoduke01/gloam`. "Test" is the test that proves we avoided the problem.
-
-| Gloam problem | Source | What we do | Test |
+| | Who sees payments | Status on Monad | How Veil differs |
 |---|---|---|---|
-| **H-P1 / C1**: `shield()` accepted a client-made commitment, so an attacker could fake a big note and drain the pool | `contracts/audit/GLOAM-BUG-REPORT.md` | No unproven commitments, ever. Deposits go through the circuit (`publicAmount`) or `depositTo`, which computes the commitment on-chain | Forge: a deposit with mismatched `extAmount` / `publicAmount` reverts. A fuzz test shows `depositTo` commitments always equal Poseidon(amount, …) |
-| **H1**: cross-asset private swaps broke per-asset solvency | `contracts/audit/H1-SWAP-SOLVENCY.md` | One pool per asset. No in-pool swaps | Invariant test: `token.balanceOf(pool) ≥ Σ unspent note amounts` |
-| **F-1**: a decimals mismatch in rate math | `contracts/audit/REMEDIATION.md` | Single-asset pools. Campaign rates in the token's own units. USDC and AUSD both have 6 decimals | Unit tests at 6 decimals with boundary amounts |
-| **F-2**: an issuer freezing the pool freezes every note | `contracts/audit/TEMPO-COMPLIANCE-DESIGN.md` | Separate USDC and AUSD pools, caps, disclosure. Never claim `emergencyWithdraw` saves you | Documented in the README |
-| **Field overflow** (Kensho C2) | `contracts/circuits/transfer/transfer.circom` | `Num2Bits(128)` on every amount | Circuit test: an amount of `p−1` fails to prove |
-| **Public-input order drift** between circuit and contract | Kensho second pass | One source of truth for input order, plus a parity test | CI: a proof made in TS verifies in Forge (ffi or a fixture), and a single-field tamper fails |
-| **Merkle zeros mismatch** | Kensho second pass | Generate the zeros from circomlibjs into Solidity constants with a script | Test: TS root == Solidity root after 1, 2 and 1,000 inserts |
-| **Relayer can redirect funds** | `packages/sdk/src/relay.ts` (they bound the recipient) | `extDataHash` binds recipient, relayer, fee and both encrypted outputs | Forge: changing any extData field reverts |
-| **Bearer secrets let the payer spend back** (forced the x402 "sweep") | `packages/sdk/src/x402.ts` | Key-owned notes: a nullifier needs `spendPriv` | SDK test: the payer can't build a valid spend of the payee's note |
-| **M-1**: plaintext note secrets in localStorage | `GLOAM-BUG-REPORT.md` | AES-GCM under the Mera-derived at-rest key (index 3) | Manual check: localStorage holds only ciphertext |
-| **L-1**: the memo event revealed the sender | `GLOAM-BUG-REPORT.md` | Encrypted outputs go out in the pool event, from the relayer's `msg.sender` | Look at the event in the explorer |
-| **Tempo gas**: hardcoded limits broke | Gloam commit "Tempo: let the wallet estimate gas" | Estimate, +15%. Monad charges the full limit | Run on testnet with the receipt's `gasUsed` logged |
-| **Slow tree sync** | Gloam `app/src/lib/treeSync.ts` + `/api/vault-leaves` | Envio, plus a root check, plus RPC fallback in 100-block chunks | Kill Envio → the app still syncs (slowly) |
-| **Mixed hash schemes / stale pools in the UI** | `contracts/ARCHITECTURE.md` ("App must not default to them") | One registry file per network. Old deploys removed from the app | — |
+| Unlink | Its engine generates proofs on its servers and **keeps users' viewing keys** | Mainnet needs an access grant | Proofs on the user's device. No operator |
+| TACEO Merces | A network of MPC servers. Compliance attestation required | Mainnet, limited access | Permissionless and self-custodial |
+| Category Labs "privacy" | Unknown (teaser on 6 Oct) | Not launched | Built for people and agents now |
 
-**How to use Gloam during the build:**
-- Before writing each module, read the matching Gloam file: `networks.ts` → our network registry, `treeSync.ts`, `relay.ts`, the payroll components.
-- Note its chain-specific handling in a comment like `// cf. gloam: <file> — we differ because …`.
-- Then write ours.
+**Never claim** "audited", "production-ready" or "untraceable". Deposit and withdrawal amounts are public, and so is timing (§15).
 
 ---
 
-## 8. Repo layout (`veil-monad`, fresh, public)
+## 2. Sponsor bounties (what each needs from us)
+
+Bounty texts are behind the portal login. **The human owner must read them on Day 0** and update this table if anything differs.
+
+| Bounty | Prize | Where in this plan | What judges must SEE |
+|---|---|---|---|
+| Mera: Best Mera-Powered UX | $2,500 | Phase 6 (onboarding), §3.1 | Face ID → private account in seconds, no seed phrase, restore on another device |
+| Mera: One Passkey, Many Keys | $2,500 | §3.1 key tree, Phase 6 Accounts panel | One passkey derives the public wallet, spend key, shareable view key, at-rest key, agent accounts and per-campaign keys |
+| MetaMask: Best Agent Wallet Plugin | $2,500 | Phase 7 | `mm veil …` commands: an agent deposits under MetaMask policy, then pays privately within caps |
+| Envio: Best Use of Envio | $1,000 | Phase 4 | The wallet syncs the Merkle tree and finds its notes from Envio, plus dashboards |
+| Agora: Best Cross-Border Payments App | $10,000 | AUSD pool (Phase 2), payroll (Phase 6) | Private AUSD payroll to people in other countries; AUSD as the default dollar |
+| Chainlink: Best workflow with CRE | $3,000 | Phase 8 | CRE reads X impressions with node consensus and its report decides KOL payouts |
+| Cleanverse: Best Integration of CVI/CVA | $2,000 | Phase 9 (add if on schedule) | Verified mode: only CVI-verified wallets can deposit or receive withdrawals |
+| Aurora: Any-Chain Liquidity | $5,000 | Phase 10 (add if on schedule) | Fund from another chain with a confidential swap, then shield |
+| Nansen | $5,000 | Phase 11 (optional) | Relayer screens withdrawal recipients with Nansen data, paid by x402 on Monad |
+
+Skip Privy and Dynamic (they conflict with Mera), plus Kuru, Perpl and Community.
+Register agents and the demo API in **ERC-8004** (no bounty, but it's named in Track 04): Phase 12.
+
+---
+
+## 3. Crypto conventions (never change these)
+
+All of these are implemented and tested in `reference-kit/`. Field = BN254 scalar field, `p = 21888242871839275222246405745257275088548364400416034343698204186575808495617`.
+
+### 3.1 Keys
+
+```
+privKey (spend)  = keccak256("veil-spend-v1" ‖ seed32) mod p
+pubKey           = Poseidon(privKey)                      // Poseidon with 1 input
+encPriv (view)   = keccak256("veil-enc-v1" ‖ seed32)      // 32 bytes, x25519 private key
+encPub           = x25519(encPriv)
+Veil address     = "veil:0x" ‖ hex32(pubKey) ‖ hex32(encPub)    // 7 + 128 characters
+```
+
+`VeilKeys.fromSeed(seed32)` in `reference-kit/sdk-test/veil-core.mjs` does exactly this.
+
+**Where seeds come from: the Mera key tree.** `prfOutput` (32 bytes) comes from the passkey (Phase 6). `child(i) = deriveEvmKey(prfOutput, i)` uses Mera's documented BIP-44 path `m/44'/60'/0'/0/i`.
+
+| Index `i` | Used as | Notes |
+|---|---|---|
+| 0 | **Public EOA** (viem account via `createSecp256k1SigningSession`) | Pays gas, deposits, receives withdrawals by default |
+| 1 | Seed for the **main Veil account**: `VeilKeys.fromSeed(child(1))` | Spend key + view key of the main balance |
+| 2 | **Shareable auditor view key**: a second x25519 key whose public half is registered as the account's "audit key" | Optional. The main `encPriv` from index 1 is already a full view key. Index 2 exists for the "share with my accountant" demo; the app encrypts a copy of each outgoing note to it (`encryptedOutput` stays to the recipient; the audit copy is stored client-side and exportable) |
+| 3 | **At-rest key**: AES-256-GCM key = `keccak256("veil-at-rest-v1" ‖ child(3))` | Encrypts the local note cache (Gloam audit M-1 fix) |
+| 10 + k | Seed for **agent sub-account k** (k = 0…9) | Each agent has its own Veil address and balance |
+| 100 + j | **Campaign admin EOA** for campaign j | Signs StreamVault admin calls. Funded with gas by the relayer drip, so it's never linked to the treasury |
+| 200 + j | Seed for the **campaign refund Veil account** j | `adminPubKey` in StreamVault; unspent budget returns here |
+
+Persist the next free `j` and `k` in localStorage. They're not secret. Show this tree in the UI ("Accounts"); it's the Mera "Many Keys" demo.
+
+### 3.2 Notes
+
+```
+commitment = Poseidon(amount, pubKey, blinding)           // 3 inputs, in this order
+signature  = Poseidon(privKey, commitment, leafIndex)
+nullifier  = Poseidon(commitment, leafIndex, signature)
+amount < 2^128; blinding = 31 random bytes (always < p)
+```
+
+One pool contract per asset, so the asset is NOT part of the note.
+
+### 3.3 Merkle tree
+
+Depth 20. Empty leaf = 0. `zeros[i+1] = Poseidon(zeros[i], zeros[i])`. Node = `Poseidon(left, right)`. Leaves are inserted in event order. The tree root after N inserts must equal the contract's `currentRoot`. **Every root ever produced stays valid** (`knownRoots`), so a proof built against an older root still lands.
+
+### 3.4 Circuit `transaction2x2` (2 inputs, 2 outputs, depth 20)
+
+Public inputs, in this exact order: `[root, publicAmount, extDataHash, inputNullifier[0], inputNullifier[1], outputCommitment[0], outputCommitment[1]]`.
+
+| Constraint | Why |
+|---|---|
+| Each input: commitment opens with the key; nullifier derived as in §3.2; Merkle path checked **unless amount = 0** (dummy input) | Ownership plus membership |
+| `Num2Bits(128)` on every input and output amount | No field wrap-around (Gloam Kensho C2) |
+| `inputNullifier[0] != inputNullifier[1]` | No double-spend inside one transaction |
+| `sum(in) + publicAmount == sum(out)` (mod p) | Value conservation |
+| `extDataHash` squared into a dummy signal | Binds recipient, relayer, fee and memos to the proof |
+
+### 3.5 ExtData and publicAmount
+
+```solidity
+struct ExtData { address recipient; int256 extAmount; address relayer; uint256 fee; bytes encryptedOutput1; bytes encryptedOutput2; }
+extDataHash  = uint256(keccak256(abi.encode(extData))) % p          // abi.encode of the STRUCT (tuple)
+publicAmount = (extAmount - fee) mod p                              // the contract computes it; the prover can't choose
+```
+
+| Case | extAmount | fee | Who sends the tx |
+|---|---|---|---|
+| Deposit | `+amount` | 0 | The depositor's own wallet (tokens are pulled from `msg.sender`) |
+| Private transfer | 0 | relayer fee (testnet 0) | Relayer |
+| Withdrawal | `−amount` | relayer fee | Relayer (recipient is bound in the proof) |
+
+### 3.6 Memo formats (`encryptedOutputN` / `depositTo` memo)
+
+| Format | Length | Content | Made by |
+|---|---|---|---|
+| Encrypted | 120 bytes | `ephPub(32) ‖ nonce(24) ‖ XChaCha20-Poly1305(ct of amount(16 BE) ‖ blinding(32 BE), 64 incl. tag)`. Key = HKDF-SHA256(x25519(eph, encPub), info `"veil-note-v1"`, 32 bytes) | SDK, for every `transact` output |
+| Plain | 49 bytes | `0x01 ‖ amount(16 BE) ‖ blinding(32 BE)` | Contracts (StreamVault) that can't encrypt |
+
+**Scanner rule:** for each `NewCommitment(commitment, index, memo)`, call `readMemo(encPriv, memo)`. If it returns `{amount, blinding}` and `Poseidon(amount, myPubKey, blinding) == commitment`, the note is yours. **Always recompute the commitment.** A memo can lie.
+
+### 3.7 Events (the indexer and wallets depend on these exact signatures)
+
+```
+VeilPool:    NewCommitment(uint256 commitment, uint256 index, bytes encryptedOutput)
+             NewNullifier(uint256 nullifier)
+StreamVault: PostRegistered(uint256 indexed postId, uint64 indexed xUserId)
+             Report(uint256 indexed postId, uint64 impressions, bool valid)
+             Payout(uint256 indexed postId, uint256 pubKey, uint256 amount, uint256 blinding, uint256 commitment, uint32 index, bool holdback)
+             PostRejected(uint256 indexed postId, uint256 forfeited)
+             StreamCreated(uint256 indexed streamId, uint256 pubKey, uint128 ratePerSecond, uint64 start, uint64 end)
+             Drip(uint256 indexed streamId, uint256 amount, uint256 blinding, uint256 commitment, uint32 index)
+             Closed(uint256 refunded)
+Factory:     CampaignCreated(address indexed vault, address indexed admin, bytes32 salt)
+```
+
+---
+
+## 4. Gloam map: which Gloam file to read before each module
+
+Gloam solved the same problems on Robinhood Chain and Tempo. **Read the file, understand the lesson, write our own version.** Gloam's design differs from ours: it uses bearer-secret notes, 1 input → 2 outputs, separate circuits, and a multi-asset pool. Don't import those differences.
+
+| Our module | Read in `gloam/` | What to learn | What we do differently |
+|---|---|---|---|
+| Circuit pipeline | `contracts/circuits/scripts/build-proof-circuits.mjs`, `contracts/circuits/common/merkle_poseidon.circom`, `contracts/circuits/transfer/transfer.circom` | compile → setup → contribute → export; artifact hash pinning; `Num2Bits(128)` range checks | One 2x2 circuit; leaf index bound into the nullifier |
+| Poseidon on-chain | `contracts/circuits/scripts/deploy-poseidon.mjs`, `contracts/src/lib/IPoseidon.sol` | Deploy circomlibjs bytecode as separate contracts (guaranteed to match the circuit) | Same approach (`reference-kit/contracts/scripts/gen-poseidon-fixtures.mjs`) |
+| Merkle tree | `contracts/src/lib/IncrementalMerkleTreePoseidon.sol` | Precomputed zeros (constructor gas); permanent `knownRoots` | Same idea. Our zeros constants are identical and tested |
+| Pool contract | `contracts/src/ShieldPoolPoseidon.sol`, `contracts/audit/*` | `nonReentrant`, checks-effects-interactions, explicit errors, fee-on-transfer check, two-step owner, no admin withdraw | `transact` + `depositTo`, one asset per pool |
+| Proof packing | `packages/sdk/src/proof.ts` | **pi_b coordinates must be swapped** for the Solidity verifier | Same (`buildTransaction` in the kit) |
+| Poseidon/tree in TS | `packages/sdk/src/poseidon.ts`, `packages/sdk/src/merkle.ts` | circomlibjs `buildPoseidon` once, cached | Kit `MerkleTree` |
+| Proving in browser | `app/src/lib/proveClient.ts`, `app/src/lib/circuitArtifacts.ts` | Serve wasm/zkey from `/public/circuits`, check sha256 before use | Same |
+| Tree sync | `packages/sdk/src/sync.ts`, `app/src/lib/treeSync.ts`, `app/src/app/api/vault-leaves/` | Replay leaves in exact on-chain order; chunk `getLogs`; verify the root | Envio first, RPC fallback |
+| Note encryption | `packages/sdk/src/receiveTag.ts` | Ephemeral ECDH + HKDF + AEAD; base64url encodings | x25519 + XChaCha20-Poly1305 (§3.6) |
+| Note vault at rest | `app/src/lib/noteVault.ts`, `app/src/lib/passkeyWrap.ts`, `app/src/lib/secretBox.ts` | Encrypt secrets in localStorage | Key from Mera index 3 |
+| Relay | `app/src/lib/relay/server.ts`, `app/src/lib/relay/client.ts`, `app/src/app/api/relay/route.ts` | Dry-run before send; pad gas; nonce retry; rate limits; neutral error messages; screening | Our relayer earns a fee bound in the proof |
+| Screening | `app/src/lib/screeningServer.ts`, `app/src/lib/screeningList.json`, `app/scripts/refresh-ofac-list.mjs` | OFAC list snapshot check on public addresses | Same |
+| Payroll | `app/src/lib/payroll.ts`, `app/src/lib/payrollSchedule.ts` | **Crash safety**: persist the change note and row state BEFORE submitting; reconcile against `isSpent` on resume; claim links | 2 inputs, so the change can merge |
+| Payment requests | `app/src/lib/paymentRequest.ts` | Put request details after `#` so they never reach a server | Same |
+| Disclosure | `app/src/lib/disclosure.ts`, `packages/sdk/src/proofs.ts` | Prove one note to one party | Receipt = note opening (§6.9). No extra circuit |
+| x402 | `packages/sdk/src/x402.ts`, `examples/pay-x402/`, `packages/mppx-gloam/` | 402 flow; their payer could spend back, so they needed a "sweep" | Key-owned notes, so no sweep |
+| Agent limits | `mcp/src/policy.ts`, `mcp/src/spendGuard.ts`, `mcp/src/spendLog.ts`, `mcp/src/noteStore.ts` | Per-payment, per-day and allowed-recipient caps; reserve then settle in a log; file locks | Same rules inside the mm plugin |
+| Network registry | `app/src/lib/networks.ts`, `app/src/lib/chain.ts`, `app/src/lib/config.ts` | One record per network; runtime switch | Monad testnet + mainnet |
+| Deploy notes | `DEPLOY.md`, `DEPLOY-TEMPO.md`, `contracts/script/DeployTempoPool.s.sol` | Gas caps per chain, record deploy blocks | Monad specifics in Phase 2 |
+| Transparency | `app/src/components/transparency/`, `app/src/lib/onchainMetrics.ts` | Public stats only | From Envio |
+| Honesty | `README.md` "Honest gates", `contracts/audit/REMEDIATION.md` | What's live vs not; disclose the dev ceremony | Same habit |
+
+---
+
+## 5. Constants
+
+| Name | Value |
+|---|---|
+| Monad mainnet | chainId `143`, viem `monad` from `viem/chains`, RPC `https://rpc.monad.xyz` (QuickNode, `eth_getLogs` max **100 blocks**), `https://rpc1.monad.xyz` (Alchemy, 1,000 blocks) |
+| Monad testnet | chainId `10143`, viem `monadTestnet`, RPC `https://testnet-rpc.monad.xyz` |
+| USDC mainnet | `0x754704Bc059F8C67012fEd69BC8A327a5aafb603` (6 decimals; EIP-712 domain name `"USDC"`, version `"2"`) |
+| USDC testnet | `0x534b2f3A21130d7a60830c2Df862319e593943A3` (6 decimals) |
+| AUSD mainnet | `0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a` (6 decimals; issuer can freeze, pause and upgrade with no timelock) |
+| AUSD testnet | None known. Deploy `MockERC20` "tAUSD" (6 decimals) and label it as a mock |
+| x402 facilitator (public `exact` scheme) | `https://x402-facilitator.molandak.org`; use `@x402/evm >= 2.22.0` |
+| ERC-8004 Identity Registry | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` |
+| ERC-8004 Reputation Registry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` |
+| CRE forwarders | Testnet: simulation `0xB9F79d863261869B234c481D1f9A7af84AeAd192`, production `0xF8344CFd5c43616a4366C34E3EEE75af79a74482`. Mainnet: simulation `0x9eF6468C5f37b976E57d52054c693269479A784d`, production `0x76c9cf548b4179F8901cda1f8623568b58215E62`. Chain names: `monad-testnet`, `monad-mainnet` |
+| Envio HyperSync | `https://monad.hypersync.xyz` (143), `https://monad-testnet.hypersync.xyz` (10143) |
+| Aurora Swap API | `https://intents-api.aurora.dev/api/quote/{apiKey}`. Monad USDC asset id (1Click list, re-fetch before use): `nep245:v2_1.omni.hot.tg:143_2dmLwYWkCQKyTjeUPAsGJuiVLbFx` |
+| Nansen x402 | `https://api.nansen.ai/api/v1/profiler/address/counterparties` ($0.05), `.../related-wallets` ($0.01). USDC on Monad, 5 requests/s |
+| ptau (2^16) | `https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/pot28_0080/ppot_0080_16.ptau`, sha256 `ed3622a7c79b0b49aadd134ebbc5b77df8c8c59bccebdfd0d9bf2c1a51561cf9`. The Hermez links Gloam used now return **403** |
+| Tool versions (verified) | circom 2.2.2, snarkjs 0.7.5, circomlib 2.0.5, circomlibjs 0.1.7, Foundry 1.5.1, solc 0.8.24 (evm `cancun`), OpenZeppelin 5.1.0, viem 2.57, Node 22, `@noble/curves@1`, `@noble/ciphers@1`, `@noble/hashes@1` |
+| Gas (measured; Monad adds ≈ +0.9M per proof verify) | `transact` ≈ 1.75M on anvil, **≈ 2.7M on Monad**; `depositTo` ≈ 0.84M; StreamVault `onReport` (1 post) ≈ 1.0M. Always estimate × 1.15 |
+| Proof time | ≈ 1.6 s per proof in Node. Browser: 2–5 s (use a Web Worker) |
+
+---
+
+## 6. Phases
+
+### Phase 0: Human setup (owner, Day 0, ~1 hour, can run in parallel with Phase 1)
+
+1. Read every bounty's text in the portal (§2). Note required items such as "deployed on mainnet", "video", "npm package".
+2. **Fix the domain now** (e.g. `veil-pay.xyz` or a Vercel subdomain). Mera passkeys are bound to the domain (`rpId`). Changing it later loses every account.
+3. Create accounts and keys:
+
+| Service | What | Env var |
+|---|---|---|
+| GitHub | Fresh public repo `veil-monad` | — |
+| Deployer wallet | New EOA with testnet MON (faucet) and later ~5 MON mainnet | `DEPLOYER_PK` |
+| Relayer wallet | Separate new EOA with MON | `RELAYER_PK` |
+| Chainlink CRE | Account, `cre login`; request Early Access (`cre account access`) | `CRE_ETH_PRIVATE_KEY` (for `--broadcast` simulation) |
+| X API | Developer account with tweet lookup (pay-per-use) | `X_BEARER_TOKEN` |
+| Envio | Envio Cloud (hosted indexer) account linked to GitHub | — |
+| Aurora | API key from studio.aurora.dev (not secret) | `NEXT_PUBLIC_AURORA_KEY` |
+| Cleanverse | Ask for sandbox access and the CVA token address on Monad (Discord or portal) | — |
+| Agora | Optional: book a Stablecoin API demo (don't depend on it) | — |
+| MetaMask | `npm i -g @metamask/agent-wallet@7`, `mm login`, `mm init --mode guard` | — |
+
+**Done when:** domain fixed, repo created, both wallets funded on testnet, CRE logged in, X token works (`curl -H "Authorization: Bearer $X_BEARER_TOKEN" "https://api.x.com/2/tweets?ids=20&tweet.fields=public_metrics"` returns JSON).
+
+---
+
+### Phase 1: Repo and circuit (Day 1 morning)
+
+**Repo layout** (pnpm workspaces):
 
 ```
 veil-monad/
-  circuits/            transaction2x2.circom, keypair, merkle; scripts/setup.sh (ptau → zkey → verifier.sol); test/
-  contracts/           Foundry: VeilPool, Verifier, PoseidonT3/T4 (poseidon-solidity), StreamVault(+Factory), CviAdapter, mocks; test/ (unit, fuzz, invariant)
-  packages/sdk/        @veil/sdk — keys (Mera tree), note, encrypt, prover (snarkjs, browser+node), tree (Envio+RPC), tx builder, x402 scheme
-  packages/mm-plugin/  @veil/mm-plugin — `mm veil …` + skills/veil-payments/SKILL.md
-  services/relayer/    Hono — /relay, /x402/{verify,settle}, screening, meta-tx
-  services/cre/        CRE TS workflow — impressions → StreamVault.onReport
-  indexer/             Envio HyperIndex config + handlers
-  apps/web/            Next.js — onboarding (Mera), wallet, payroll, campaigns, KOL view, verify page, transparency
-  apps/demo-api/       paid API (x402: shielded + exact)
-  docs/                PRIVACY-MODEL.md, THREAT-MODEL.md, PRIOR-ART.md
+  circuits/            ← from reference-kit/circuits
+  contracts/           ← from reference-kit/contracts (Foundry)
+  packages/sdk/        ← @veil/sdk (TypeScript), ported from reference-kit/sdk-test/veil-core.mjs
+  packages/mm-plugin/  ← @veil/mm-plugin
+  services/relayer/    ← Hono + Node (relayer + gas drip + screening)
+  services/cre/        ← CRE workflow (TypeScript, Bun)
+  indexer/             ← Envio HyperIndex
+  apps/web/            ← Next.js app (UI is your design)
+  apps/demo-api/       ← paid API (x402 shielded + exact)
+  docs/                ← PRIVACY-MODEL.md, THREAT-MODEL.md, PRIOR-ART.md, NOTES.md
+  e2e/                 ← reference-kit/sdk-test e2e + circuit-negative, kept green forever
+  deployments/         ← testnet.json, mainnet.json (addresses + deploy blocks)
 ```
 
+**Steps**
+
+1. `git init`, add `pnpm-workspace.yaml` with `packages/*`, `services/*`, `apps/*`, `indexer`, `e2e`. Add `.gitignore`: `node_modules`, `circuits/build`, `*.ptau`, `contracts/out`, `contracts/cache`, `.env*` (except `.env.example`).
+2. Copy `reference-kit/circuits` → `circuits/`. Run `npm i` (or pnpm), then `bash scripts/setup.sh`. This downloads the ptau (75 MB), compiles and makes the keys (~2 min). Pass `-e` to every `snarkjs zkey contribute`, or it hangs waiting for keyboard input; the script already does this.
+3. Note the printed `wasm sha256` and `zkey sha256`. Put them in `packages/sdk/src/artifacts.ts` (Phase 3).
+4. Copy `circuits/build/Verifier.sol` → `contracts/src/Verifier.sol`.
+5. Copy `reference-kit/sdk-test` → `e2e/`. Keep it unchanged: it's the regression suite.
+
+**Done when:** `circuits/build/transaction2x2_js/transaction2x2.wasm` and `transaction2x2_final.zkey` exist; `snarkjs r1cs info` shows 7 public inputs.
+
+**If you ever change the circuit:** rerun setup, copy the new Verifier.sol, redeploy **both** verifier and pools (old pools can't verify new proofs), update hashes, rerun all tests. Avoid this after Day 2.
+
 ---
 
-## 8b. Infrastructure: no database
+### Phase 2: Contracts (Day 1)
 
-Nearly everything lives on-chain or on the user's device. **We run no database.**
+**Steps**
 
-| State | Where it lives | Why that's enough |
+1. Copy `reference-kit/contracts` → `contracts/`. Install libs: `forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.1.0`, or with git submodules. Keep `foundry.toml` as is.
+2. `forge build && forge test` must pass (13 tests).
+3. Run the e2e suite: start `anvil --gas-limit 300000000` in one terminal, then `cd e2e && npm i && node e2e.mjs && node circuit-negative.mjs`. It must show **31 passed** and **6 passed**.
+4. **Add these Forge tests** (new file `test/VeilPool.t.sol`). Use the fixture approach from `StreamVault.t.sol` for Poseidon, and a `MockVerifier` that returns a configurable bool **only inside tests**:
+   - `transact` reverts with `UnknownRoot` for a random root.
+   - `BadPublicAmount` when `publicAmount` ≠ `calculatePublicAmount(extAmount, fee)`.
+   - `DepositTooLarge` above `maxDepositAmount`; `DepositsArePaused` when paused (deposit only — withdrawals must still work while paused).
+   - `ZeroRecipient` on a withdrawal to `address(0)`; `ZeroRelayer` when `fee > 0` and relayer is 0.
+   - `FeeOnTransferToken` with a mock token that burns 1% on transfer.
+   - Reentrancy: a mock ERC-20 that calls back into `transact` during `transfer` → reverts (`ReentrancyGuardReentrantCall`).
+   - `zeros(i+1) == hasher.poseidon([zeros(i), zeros(i)])` for i = 0…19, and `currentRoot == zeros(20)` after deploy.
+   - **Invariant (fuzz):** after random sequences of `depositTo`, `token.balanceOf(pool) == sum of all deposited − sum of all withdrawn`.
+5. **Deploy script** `contracts/script/Deploy.s.sol` (Foundry script) or `scripts/deploy.mjs` (viem). Order:
+   1. `Poseidon2` and `Poseidon3` from `test/fixtures/poseidon{2,3}.hex` (raw `create`; see `_deployCode` in the tests).
+   2. `Groth16Verifier` (from `src/Verifier.sol`).
+   3. `VeilPool(verifier, poseidon2, poseidon3, USDC, maxDeposit)` → **USDC pool**.
+   4. `VeilPool(…, AUSD or tAUSD, maxDeposit)` → **AUSD pool**.
+   5. `StreamVaultFactory()`.
+   6. If doing Cleanverse: `MockCviOracle(attester)` and `VerifiedVeilPool(…, USDC or CVA token, maxDeposit, cvi)` → **verified pool**.
+   7. Write `deployments/testnet.json`:
+      ```json
+      { "chainId": 10143, "poseidon2": "0x…", "poseidon3": "0x…", "verifier": "0x…",
+        "pools": { "USDC": { "address": "0x…", "token": "0x534b…", "decimals": 6, "deployBlock": 123 },
+                   "AUSD": { "address": "0x…", "token": "0x…", "decimals": 6, "deployBlock": 124, "mock": true } },
+        "streamVaultFactory": "0x…", "verifiedPool": null, "cvi": null,
+        "zkey_sha256": "…", "wasm_sha256": "…" }
+      ```
+6. Deploy to **Monad testnet**: `forge script script/Deploy.s.sol --rpc-url https://testnet-rpc.monad.xyz --broadcast --private-key $DEPLOYER_PK`. Some forge versions need `--slow` and `--legacy` if EIP-1559 estimation fails. Record each deploy block (needed by Envio and RPC sync).
+7. Verify contracts on the explorer if possible (MonadVision / Monadscan; the BlockVision verifier docs are linked from the Monad docs). Not required, but it helps judges.
+8. **Testnet smoke test:** point `e2e/e2e.mjs` at testnet with a copy `e2e/testnet-smoke.mjs` that uses deployed addresses, `monadTestnet` and your funded keys. Use the testnet USDC (get it from the faucet) or a `MockERC20`. Run one deposit → transfer → withdraw. **Log `gasUsed` for each and check `gasUsed × 1.15 < gas sent`.**
+
+**Done when:** all Forge tests pass, the e2e suite passes on anvil, and the testnet smoke test passes with real Monad testnet transactions (save the tx hashes in `docs/NOTES.md`). **This is the safety gate for end of Day 1.** If it isn't green by then, report it.
+
+---
+
+### Phase 3: SDK `@veil/sdk` (Day 1 evening → Day 2)
+
+Port `veil-core.mjs` to TypeScript **without changing any formula**. Build with `tsup` (ESM + CJS). Use the same dependencies as the kit.
+
+| File | Exports | Notes |
 |---|---|---|
-| Notes, Merkle tree, spent nullifiers | **On-chain** (`VeilPool` events and storage) | The pool contract is the source of truth |
-| Encrypted note contents (amount, blinding) | **On-chain**, in the `NewCommitment` event | Any device with the passkey can rescan and rebuild the wallet |
-| Fast reads (tree sync, history, dashboards) | **Envio hosted indexer** | A managed index of on-chain events. We don't operate it, and we can rebuild it from the chain at any time. The SDK falls back to RPC |
-| A user's notes and keys | **Device**: browser storage encrypted with the passkey-derived key, or a local file for the mm plugin | A cache only. Losing it loses nothing, because a rescan from the passkey restores it |
-| Campaigns, KOL registrations, stream state, payouts | **On-chain** (`StreamVault` clones) | CRE reads them from the chain and writes reports back |
-| Payroll CSV, claim links | Browser memory; claim secret in the **URL fragment** (never sent to a server) | Nothing to store |
-| Agent caps (`mm veil guard`) | Local plugin config file | Per agent, per machine, like MetaMask's own policy |
-| X API token, deployer key, relayer key | CRE secrets / env vars | No user data |
+| `constants.ts` | `FIELD_SIZE`, `LEVELS = 20`, `MAX_NOTE_AMOUNT`, `NETWORKS` (from `deployments/*.json`) | One registry; the app and plugin import from here |
+| `poseidon.ts` | `poseidon(inputs: bigint[]): Promise<bigint>` | Cache `buildPoseidon()` |
+| `keys.ts` | `VeilKeys.fromSeed(seed32)`, `keysFromPrf(prfOutput)` → `{ publicAccountKey, main, auditEnc, atRestKey, agent(k), campaignAdmin(j), campaignRefund(j) }` | Uses Mera's `deriveEvmKey` (copy the 5-line function from `docs-offline/monad-mera-guide.md` — it uses `@scure/bip32` and `@scure/bip39`) |
+| `address.ts` | `formatAddress(keys)`, `parseAddress(str)` | Reject pubKey ≥ p and wrong length |
+| `note.ts` | `commitmentOf`, `nullifierOf`, `type Note = { amount, pubKey, blinding, index }` | |
+| `memo.ts` | `encryptNote`, `decryptNote`, `readMemo` | Exactly as the kit (§3.6) |
+| `tree.ts` | `MerkleTree` (`leaves`, `root()`, `path(i)`), plus an incremental cache | The kit rebuilds all layers per call. Add caching: keep `layers` and update only the new leaf's path on insert. Must still equal the kit's output (add a test comparing both for 1, 2, 3, 100, 1,000 leaves) |
+| `sync.ts` | `syncFromEnvio(gqlUrl, pool, fromIndex)`, `syncFromRpc(client, pool, fromBlock, chunk=100n)`, `assertRoot(client, pool, root)` | Leaves must be contiguous by `index`. After syncing, `pool.isKnownRoot(localRoot)` must be `true`; otherwise discard and resync from RPC |
+| `wallet.ts` | `scanNotes(keys, commitments)`, `spendable(notes, isSpent)`, `balance(notes)` | Spent check: `pool.isSpent(nullifier)` (batch with multicall) or the Envio Nullifier set |
+| `coinSelect.ts` | `selectInputs(notes, target)` → `{inputs, change}` or `{needsMerge: [a, b]}` | Rules below |
+| `artifacts.ts` | `WASM_SHA256`, `ZKEY_SHA256`, `loadArtifacts(baseUrl)` | Download, sha256-check, cache (IndexedDB in browser) |
+| `prover.ts` | `nodeProver(paths)`, `browserProver(urls)` (Web Worker) | Both call `snarkjs.groth16.fullProve` |
+| `tx.ts` | `buildTransaction(...)` (kit), `buildDeposit`, `buildTransfer`, `buildWithdraw` | `buildTransfer(to: VeilAddress, amount, fee, relayer)` puts the payment in output 0, change in output 1 |
+| `submit.ts` | `submitDirect(walletClient, pool, tx)`, `submitViaRelayer(url, chainId, pool, tx)` | Direct submission is used for deposits. Relayer for transfer and withdraw by default |
+| `store.ts` | `NoteStore` (encrypted with the at-rest key; localStorage in browser, a 0600 JSON file in Node) | Store notes plus pending tx state |
+| `disclose.ts` | `makeReceipt(note, pool, chainId)`, `verifyReceipt(receipt, client, envio)` | §6.9 |
+| `x402.ts` | `shieldedPaymentRequirements(...)`, `payShielded(...)`, `verifyShieldedPayment(...)` | Phase 5 |
+| `payroll.ts` | `runPayroll(rows, ctx, onProgress)` | Phase 6 |
+| `bigintJson.ts` | `stringify`/`parse` that keep bigint as decimal strings | JSON can't hold bigint; never use `Number` for amounts |
 
-**What we run:**
-1. The Next.js app and the relayer/facilitator, which can be Vercel API routes. The relayer is **stateless**: it checks each proof against the chain and holds only a funded MON gas key.
-2. The demo paid API.
-3. Envio hosted.
-4. The CRE workflow (in simulation, or on Chainlink's network with Early Access).
+**Coin selection (2 inputs max):**
 
-Optional: in-memory rate limiting on the relayer. A Redis or KV store only if we add per-merchant analytics, which we don't need for the hackathon.
+1. `need = amount + fee`. Sort spendable notes descending.
+2. If one note ≥ need → use the smallest such note (+ a dummy).
+3. Else, if the two largest notes sum ≥ need → use the smallest pair that covers it.
+4. Else → `needsMerge`: first send a **merge transaction** (2 largest notes → 1 note to self, fee 0 if self-submitted, or relayer fee), wait for confirmation, resync, repeat.
+5. Change = sum(in) − need, sent to own address as output 1. A zero-amount change is fine (it's still a valid note).
+
+**Rules:**
+- All amounts are `bigint` in token units (6 decimals). Parse user input with `parseUnits(str, 6)`. Never use floats.
+- Reject a transfer to an address that fails `parseAddress`.
+- After every submit: wait for the receipt (`waitForTransactionReceipt`). Then read the `NewCommitment` logs **from the receipt** to learn the new indices immediately. Don't wait for the indexer.
+- **Pending state:** before submitting a spend, write `{nullifiers, outputs, status: "pending"}` to the store. On restart, reconcile with `isSpent` (Gloam payroll lesson).
+
+**Tests** (vitest): port every assertion from `e2e.mjs` into TS tests against anvil (spin up anvil in `globalSetup`). Add:
+- the tree-cache equivalence test;
+- `parseAddress(formatAddress(k))` round trip;
+- `readMemo` on plain and encrypted memos;
+- coin selection cases (one note, a pair, needs merge, exact match).
+
+**Done when:** `pnpm --filter @veil/sdk test` is green and a Node script using only the SDK does deposit → transfer → withdraw on **testnet** via the relayer stub (direct submission is fine until Phase 5).
 
 ---
 
-## 9. Day-by-day plan
+### Phase 4: Envio indexer (Day 2)
 
-**Calendar:** BNB Hack is nearly done and Colosseum is being submitted on 7 Oct, so Metropolis gets the full 8–12 Oct. **Solana Clock In was postponed to 12 Oct**, so it overlaps the Monad build days (8–12 Oct). Plan both together (see `TIMELINE.md`).
+1. `pnpx envio init` in `indexer/` (TypeScript, "from ABI"). Use the VeilPool and StreamVault/Factory ABIs from `contracts/out`. **Pin an exact `envio` version** in package.json; the hosted service rejects `^`, `~` and `latest`.
+2. `config.yaml` (adapt to the generated layout; check `docs-offline/envio-full.txt`, sections "Configuration file" and "Dynamic contracts"):
 
-| Day | Date | Build | Done when |
+```yaml
+name: veil-indexer
+contracts:
+  - name: VeilPool
+    abi_file_path: abis/VeilPool.json
+    events:
+      - event: NewCommitment(uint256 commitment, uint256 index, bytes encryptedOutput)
+      - event: NewNullifier(uint256 nullifier)
+  - name: StreamVaultFactory
+    abi_file_path: abis/StreamVaultFactory.json
+    events:
+      - event: CampaignCreated(address indexed vault, address indexed admin, bytes32 salt)
+  - name: StreamVault
+    abi_file_path: abis/StreamVault.json
+    events:
+      - event: PostRegistered(uint256 indexed postId, uint64 indexed xUserId)
+      - event: Report(uint256 indexed postId, uint64 impressions, bool valid)
+      - event: Payout(uint256 indexed postId, uint256 pubKey, uint256 amount, uint256 blinding, uint256 commitment, uint32 index, bool holdback)
+      - event: PostRejected(uint256 indexed postId, uint256 forfeited)
+      - event: StreamCreated(uint256 indexed streamId, uint256 pubKey, uint128 ratePerSecond, uint64 start, uint64 end)
+      - event: Drip(uint256 indexed streamId, uint256 amount, uint256 blinding, uint256 commitment, uint32 index)
+      - event: Closed(uint256 refunded)
+chains:
+  - id: 10143
+    start_block: <lowest deploy block from deployments/testnet.json>
+    contracts:
+      - name: VeilPool
+        address: ["<USDC pool>", "<AUSD pool>"]   # add the verified pool if deployed
+      - name: StreamVaultFactory
+        address: "<factory>"
+      - name: StreamVault          # no address: registered dynamically from CampaignCreated
+```
+
+3. `schema.graphql`:
+
+```graphql
+type Commitment { id: ID! pool: String! index: BigInt! commitment: BigInt! memo: String! blockNumber: BigInt! txHash: String! }
+type Nullifier { id: ID! pool: String! nullifier: BigInt! blockNumber: BigInt! }
+type PoolStat { id: ID! commitments: BigInt! nullifiers: BigInt! }
+type Campaign { id: ID! admin: String! createdAt: BigInt! totalPaid: BigInt! posts: BigInt! }
+type Post { id: ID! campaign: String! postId: BigInt! xUserId: BigInt! lastImpressions: BigInt! paid: BigInt! rejected: Boolean! }
+type Payout { id: ID! campaign: String! postId: BigInt! pubKey: BigInt! amount: BigInt! blinding: BigInt! commitment: BigInt! index: BigInt! holdback: Boolean! blockNumber: BigInt! }
+```
+
+   IDs: `Commitment.id = "<pool>-<index>"`, `Nullifier.id = "<pool>-<nullifier>"`, `Post.id = "<vault>-<postId>"`, `Payout.id = "<txHash>-<logIndex>"`.
+
+4. Handlers: one per event. Write the entity, and update `PoolStat` and `Campaign` counters. For `CampaignCreated`, register the new vault as a dynamic `StreamVault` contract (follow the "contract register" syntax for your Envio version in the docs).
+5. Run locally (`pnpm dev`, needs Docker) or deploy to Envio Cloud from GitHub. Add a second chain entry for `143` when mainnet is deployed.
+6. **SDK query** (Hasura-style; check the generated GraphQL schema for exact names):
+
+```graphql
+query Leaves($pool: String!, $from: numeric!) {
+  Commitment(where: {pool: {_eq: $pool}, index: {_gte: $from}}, order_by: {index: asc}, limit: 1000) { index commitment memo }
+}
+```
+
+   Page by `index` until fewer than 1,000 come back. Pools store addresses lowercased; lowercase before querying.
+
+**Done when:** after a testnet transaction, the GraphQL query returns the new commitments within ~10 s; `syncFromEnvio` rebuilds a tree whose root `isKnownRoot` accepts; stopping Envio makes the SDK fall back to `syncFromRpc` and still work (slower).
+
+---
+
+### Phase 5: Relayer, gas drip, and the x402 `shielded` scheme (Day 2–3)
+
+**Run the relayer as ONE long-lived Node process** (Railway, Render, Fly or a small VM). Serverless functions run in parallel, and parallel instances reuse nonces. Use Hono + viem. Keep a single in-memory send queue, so only one transaction is in flight per relayer key.
+
+#### 5.1 `POST /relay`
+
+Request:
+```json
+{ "chainId": 10143, "pool": "0x…", "proof": { "a": ["…","…"], "b": [["…","…"],["…","…"]], "c": ["…","…"], "root": "…", "publicAmount": "…", "extDataHash": "…", "inputNullifiers": ["…","…"], "outputCommitments": ["…","…"] }, "extData": { "recipient": "0x…", "extAmount": "-3000000", "relayer": "0x…", "fee": "0", "encryptedOutput1": "0x…", "encryptedOutput2": "0x…" } }
+```
+
+All numbers are decimal strings. Checks, in this order (reply `400` with a short code on failure):
+
+1. `chainId` and `pool` are in `deployments/*.json` → else `unknown_pool`.
+2. `extData.extAmount <= 0` (the relayer never deposits) → else `deposit_not_relayed`.
+3. `extData.relayer == relayer address` → else `wrong_relayer`.
+4. `BigInt(fee) >= MIN_FEE[chainId][pool]` (testnet 0; mainnet e.g. 0.02 USDC) → else `fee_too_low`.
+5. If `extAmount < 0`: screen `extData.recipient` against the OFAC list (and Nansen, Phase 11) → `403 screened` with a neutral message.
+6. Recompute `hashExtData(extData)` locally == `proof.extDataHash` → else `bad_ext_data`.
+7. `publicClient.simulateContract({ functionName: "transact", args: [proof, extData], account: relayer })` → decode the revert name (`UnknownRoot`, `NullifierAlreadySpent`, `InvalidProof`, …) and return it.
+8. `estimateContractGas` × 1.15 → `writeContract({ gas })` → `waitForTransactionReceipt`.
+9. Reply `{ "txHash": "0x…", "status": "success", "commitments": [{ "commitment": "…", "index": 12 }, …] }`, parsed from the receipt's `NewCommitment` logs.
+
+Rate limit: 10 requests per minute per IP and 60 per minute per pool (in-memory). On a `nonce too low`, `replacement` or `already known` error: refetch the nonce and retry **once** (Gloam `relay/server.ts`).
+
+#### 5.2 `GET /status`
+
+Returns `{ relayer, chains: { "10143": { balanceMon, minFee: { "<pool>": "0" }, pools: [...] } } }`. The app shows "relay offline" when this fails, and offers direct submission from the public EOA as a fallback (with a warning that the wallet will be visible).
+
+#### 5.3 `POST /gas-drip`
+
+Funds a fresh **campaign admin EOA** (Mera index 100 + j) with 0.05 MON, so the treasury never pays its gas.
+- Request: `{ address, chainId, signature }`, where `signature` = `personal_sign("veil-gas-drip:<address>:<chainId>")` by that address.
+- Each address gets one drip only, limited to 5 per IP per day, and only if the address's balance is < 0.01 MON.
+
+#### 5.4 x402 `shielded` scheme (spec)
+
+Uses x402 v2 HTTP headers. All header values are base64 of JSON (see `docs-offline` and coinbase/x402 `specs/transports-v2/http.md`).
+
+**1. Server → client:** `402` with header `PAYMENT-REQUIRED`:
+
+```json
+{ "x402Version": 2,
+  "resource": { "url": "https://api.veil…/v1/quote", "description": "1 quote" },
+  "accepts": [
+    { "scheme": "shielded", "network": "eip155:10143", "amount": "10000", "asset": "<USDC token address>",
+      "payTo": "veil:0x<pubKey><encPub>", "maxTimeoutSeconds": 60,
+      "extra": { "pool": "<USDC VeilPool>", "relayer": "<relayer address>", "relayerUrl": "https://relay…", "fee": "0", "version": "veil-x402-1" } },
+    { "scheme": "exact", "network": "eip155:10143", "amount": "10000", "asset": "<USDC token address>",
+      "payTo": "<merchant public EOA>", "maxTimeoutSeconds": 60, "extra": { "name": "USDC", "version": "2" } }
+  ] }
+```
+
+**2. Client:**
+1. Picks the `shielded` entry.
+2. Checks its guard (§7.3).
+3. Builds `buildTransfer(payTo, amount, fee, relayer)`. The payment is output **0**, encrypted to the merchant's `encPub`.
+4. Retries with header `PAYMENT-SIGNATURE`:
+
+```json
+{ "x402Version": 2, "accepted": { …the shielded entry… },
+  "payload": { "proof": { …decimal strings… }, "extData": { … }, "paymentOutput": 0 } }
+```
+
+**3. Merchant middleware** (`apps/demo-api`, runs on the merchant's server because it needs the merchant's view key):
+1. Decode the payload. `accepted` must deep-equal one of the merchant's current requirements → else `402 invalid_requirements`.
+2. `extData.extAmount == 0`, `extData.recipient == 0x0`, `extData.relayer == extra.relayer`, `fee == extra.fee`.
+3. `hashExtData(extData) == proof.extDataHash`.
+4. `readMemo(merchantEncPriv, extData.encryptedOutput{paymentOutput+1})` → `{amount, blinding}`. Then `Poseidon(amount, merchantPubKey, blinding) == proof.outputCommitments[paymentOutput]` and `amount >= required` → else `402 underpaid`.
+5. Idempotency: keep `sha256(header)` in memory for 10 minutes. Second use → `402 replay`. The chain also prevents a double-spend via the nullifier.
+6. `POST relayerUrl/relay` with `{chainId, pool, proof, extData}` → on `success`, store the note `{amount, blinding, index}` in the merchant's NoteStore.
+7. Respond `200` with the resource and header `PAYMENT-RESPONSE`: `{ "success": true, "transaction": "0x…", "network": "eip155:10143", "payer": "" }`.
+
+**4. The `exact` fallback:** use `@x402/next` or `@x402/core` with the Monad facilitator (`https://x402-facilitator.molandak.org`) for clients that can't pay privately. Optional auto-shield: a cron job calls `depositTo(merchantPubKey, amount, blinding, encryptedMemo)` with collected revenue.
+
+**Done when:** `curl` to the demo API returns 402 with both schemes; a Node script using `@veil/sdk` `payShielded` gets 200 in under 3 s on testnet; tampering any extData field or reusing the header fails; the relayer refuses an underpaid fee.
+
+---
+
+### Phase 6: Web app (Day 2–4; design is yours)
+
+Use Next.js App Router + viem. Only show amounts from the SDK as `formatUnits(x, 6)`.
+
+**Pages and flows (functional requirements):**
+
+| Flow | Requirements |
+|---|---|
+| **Onboarding (Mera)** | `createPasskeyWithPrfOutput({ rp: { id: <fixed domain>, name: "Veil" }, user: {...} })` on first visit; store `credentialId` and `transports` in localStorage; `getPasskeyPrfOutput({ rpId, credential })` on return. Handle `MeraError` codes: `PRF_UNAVAILABLE` (tell the user to use iCloud Keychain, Google Password Manager or 1Password, or Safari/iOS), `PASSKEY_OPERATION_FAILED` (retry), `CRYPTO_UNAVAILABLE` (needs HTTPS). Derive `keysFromPrf`. Show the Veil address with a copy button |
+| **Session** | Hold the session while the tab is open. Call `session.end()` and wipe keys from memory on sign-out or after 15 minutes idle. Re-prompt the passkey for withdrawals and payroll runs |
+| **Accounts panel** (Mera "Many Keys") | List the derived keys from §3.1: public EOA (address + MON balance), main Veil address, audit view key (export button), agent accounts (create, list, balances), campaigns (admin EOA + refund address). This is a key demo screen |
+| **Deposit** | Choose pool (USDC or AUSD), amount ≤ `maxDepositAmount`. Send `approve` (exact amount) then `transact` (deposit proof) from the public EOA with explicit `gas`. Show "Monad charges the gas limit" in a tooltip. Then show the new private balance |
+| **Fund from any chain** | Phase 10 |
+| **Balance** | Private balance per pool = sum of unspent notes. Show "syncing" with progress while syncing. Show the last sync time. Never show a stale balance as final |
+| **Send** | Input a Veil address, amount, optional note. Coin-select; merge first if needed (tell the user "combining balances"). Prove in a Web Worker with progress. Submit via relayer. Show the tx link. Every error maps to plain language (`NullifierAlreadySpent` → "This balance was already used. Refreshing…", then resync) |
+| **Withdraw** | Public address (default: own EOA), amount. Warn: "the amount and recipient will be public". Submit via relayer |
+| **Payment request link** | `https://<domain>/pay#to=<veil address>&amount=…&pool=…&ref=…`. The fragment never reaches a server (Gloam `paymentRequest.ts`). Opening it pre-fills Send |
+| **Payroll** | Upload a CSV with columns `name,veil_address_or_email,amount,note`, choose a pool (default AUSD). Preview the total + fees and require balance ≥ total. Run rows **sequentially**: persist the row as `preparing` → build → persist pending → submit → `sent` (tx hash) → update the change note. Resume after reload by reconciling with `isSpent`. Rows without a Veil address get a **claim link**: generate a random 32-byte seed, pay to `VeilKeys.fromSeed(seed)`, link = `https://<domain>/claim#<seed hex>`. The claim page derives keys from the fragment, finds the note, and lets the person withdraw to any address (relayer fee taken from the note) or move it to their own Veil address. Export a results CSV (name, amount, status, tx). Optional: an "audit pack" that encrypts each row's note opening to the audit key |
+| **Campaigns (founder)** | Create: rate per 1,000 impressions, per-post cap, holdback % (default 20), min lifetime (default 7 days), end date, X handle to require. Derive the admin EOA (index 100 + j) and refund key (200 + j); call `/gas-drip`. `factory.predict(admin, salt)` → fund by **withdrawing from the private balance to the predicted address** (relayed). Then `factory.create(config, salt)` from the admin EOA (`forwarder` = CRE simulation forwarder on testnet). Add KOLs: X user id (numeric; look it up via the X API in a server route) + KOL Veil address → `setKol(xUserId, pubKey, true)`. Dashboard: posts, impressions, paid, held, rejected (Envio). `close()` after end |
+| **KOL view** | Paste the campaign link and post URL → extract the post id → `registerPost(postId, xUserId)`. This needs gas, so send it from the KOL's public EOA, or call it via a relayer meta-route `/register-post` that only forwards `registerPost` calls. Show live private earnings: the wallet scans `Payout` events for its pubKey and plain memos (§3.6). Show the rule: "Posts must include #ad and @<project>" |
+| **Salary streams** | Admin creates a stream: payee Veil address, monthly amount → `ratePerSecond = monthly / 2,592,000`, start, end. A "Drip now" button plus a cron (relayer `setInterval` every 10 min) calling `drip(id)` on active streams |
+| **Receipts** | From history: "Share receipt" creates JSON `{chainId, pool, index, commitment, amount, pubKey, blinding}` → base64url → link `https://<domain>/verify#<data>` |
+| **Verify page** (no wallet needed) | Decode → recompute the commitment → fetch the commitment at `index` from Envio (fallback: RPC logs) → equal? Then show "This payment of X USDC to Veil address …abcd exists in the Veil pool, inserted at block N". Nothing else is revealed |
+| **Transparency page** | From Envio: TVL per pool (token `balanceOf(pool)`), counts of commitments and nullifiers, campaigns, payouts. No addresses, no per-user data |
+| **Settings** | Relayer on/off (off = submit from the public EOA with a warning), export the at-rest-encrypted backup, export the audit view key, sign out |
+
+**Circuit artifacts in the browser:**
+- Copy `transaction2x2.wasm` and `transaction2x2_final.zkey` into `apps/web/public/circuits/`.
+- Load them with `loadArtifacts` (sha256 pinned).
+- Run `snarkjs.groth16.fullProve` in a Web Worker.
+- In `next.config`, set `webpack.resolve.fallback = { fs: false, path: false, crypto: false }` (snarkjs and circomlibjs import Node modules).
+- The zkey is ~12 MB. Prefetch it after sign-in.
+
+**Done when:** on testnet, a new user can sign up with a passkey, deposit, send privately to a second user (second browser profile), and that user sees the balance; payroll of 3 rows (one claim link) completes and survives a page reload mid-run; the receipt verifies on the verify page in a private window.
+
+---
+
+### Phase 7: MetaMask Agent Wallet plugin `@veil/mm-plugin` (Day 3)
+
+Read first: `docs-offline/metamask-agent-wallet-full.txt` (sections "Build a plugin" and "Plugins" reference), `reference-repos/monagent/packages/plugin-monad/` (structure, `walletExecutor` usage) and `reference-repos/mm-plugin-perpl/README.md` (plugin's own guard, install gotchas, Monad testnet RPC workaround).
+
+1. Start from `git clone https://github.com/MetaMask/agent-wallet-plugin-template`.
+2. `package.json` must have:
+   - the keyword `oclif-plugin`;
+   - `@metamask/agent-wallet` as a **peerDependency** (`^7.0.0`);
+   - an `oclif` block (`commands: ./dist/commands`, `bin: mm`, `topicSeparator: " "`);
+   - a generated `oclif.manifest.json`;
+   - **no** `oclif.hooks` and no `oclif.plugins`.
+3. Manifest block (`targetChains` `[10143, 143]`):
+
+| Command id | File | capabilities | dataAccess |
 |---|---|---|---|
-| **0** | **7 Oct (today)** | Read every bounty's text in the portal. **Fix the name and domain (Mera rpId)**. Create the repo. Request access: CRE Early Access, Aurora API key, Cleanverse sandbox, Envio account, X API token, Agora demo. Write the circuit, run the trusted setup | Circuit compiles. A proof is made and verified in TS |
-| **1** | 8 Oct | `VeilPool` + verifier + Poseidon. Forge tests from §7 (C1, double spend, extData tamper, overflow, parity, zeros, reentrancy, invariant). Deploy to **testnet**. SDK: keys, notes, encryption, transact builder. End-to-end in Node: deposit → transfer → withdraw | **Plan B gate**: e2e green on testnet by end of day, or switch to Unlink |
-| **2** | 9 Oct | Envio indexer (hosted). Relayer `/relay`. Web app: Mera onboarding + key tree panel, deposit, balance, private send, withdraw, receipt and verify page | A judge can sign in with Face ID and send privately on testnet |
-| **3** | 10 Oct | x402 `shielded` scheme + facilitator + demo paid API. **mm plugin** (setup/deposit/pay/x402/guard/withdraw/receipt) + SKILL.md. Test `mm` writes (mainnet, or testnet via `customEvmChains`). Check whether typed-data signatures are deterministic | An agent pays the API privately through `mm veil x402 fetch` |
-| **4** | 11 Oct | Payroll (CSV, AUSD pool, claim links). `StreamVault` + factory + TimeMeter. CRE workflow simulated with `--broadcast` into the vault. KOL dashboard. Cleanverse verified mode (mock + adapter) | A KOL's balance increases from a CRE report on testnet |
-| **5** | 12 Oct | **Mainnet**: deploy USDC + AUSD pools with caps (e.g. $100 per transaction, $5k TVL) and the relayer. Aurora fund-from-any-chain (if green). Register in ERC-8004. README, PRIVACY-MODEL, prior art. **Demo video**. Write-up. **Submit** | Submitted, with links working in a private browser window |
-| — | 13 Oct | Buffer only. No new features | — |
+| `veil:setup` | `src/commands/veil/setup.ts` | `wallet-read`, `wallet-submit` | `accounts` |
+| `veil:deposit` | `src/commands/veil/deposit.ts` | `wallet-read`, `wallet-submit` | `balances` |
+| `veil:balance` | `src/commands/veil/balance.ts` | — | — |
+| `veil:pay` | `src/commands/veil/pay.ts` | — | — |
+| `veil:x402:fetch` | `src/commands/veil/x402/fetch.ts` | — | — |
+| `veil:withdraw` | `src/commands/veil/withdraw.ts` | `wallet-read` | `accounts` |
+| `veil:guard:set` / `veil:guard:get` | `src/commands/veil/guard/*.ts` | — | — |
+| `veil:receipt` | `src/commands/veil/receipt.ts` | — | — |
+| `veil:skill` | `src/commands/veil/skill.ts` | — | — (prints/installs SKILL.md) |
 
-**What to cut, in order, if behind:**
+Keep the plugin-wide `capabilities` empty.
+
+4. **Agent key storage** (`~/.veil/agent-<walletAddress>-<chainId>.json`, mode 0600):
+   - **`setup`:** ask the wallet to sign a fixed EIP-712 message twice:
+     - domain `{ name: "Veil", version: "1", chainId }`;
+     - type `VeilAgentKey { string purpose; address wallet; }`;
+     - message `{ purpose: "Derive my Veil agent key. Only sign this in the Veil plugin.", wallet }`.
+     It uses `ctx.walletExecutor(io, "veil:setup")` with `kind: "typed-data"`. **If both signatures are equal** (deterministic signing), `seed = keccak256(signature)`; store only `{ mode: "derived" }` and re-derive on each run with one more signature. **If they differ**, generate a random 32-byte seed and store it encrypted with AES-GCM under `VEIL_PASSPHRASE` (env var; refuse to run without it). Print a warning to back it up (`mm veil receipt` / `mm veil setup --export`).
+   - Print the agent's Veil address.
+5. **Commands:**
+   - **`deposit --amount 5 --pool USDC --chain-id 10143`:**
+     1. Build the deposit proof locally.
+     2. Send `approve` (exact) via `walletExecutor` (`kind: "transaction"`, `{to: token, data}`).
+     3. Send `transact` via `walletExecutor`.
+     MetaMask policy, simulation and 2FA apply to money **entering** the pool. Handle `[AWAITING_MFA]` (stop and tell the human).
+   - **`pay --to veil:0x… --amount 1.5 [--pool USDC]`:** guard check → build transfer → `/relay` → print tx + receipt.
+   - **`x402 fetch <url> [--method GET] [--body json] [--max 0.10]`:** §5.4 client. Refuse if the shielded entry's `amount + fee > --max` or the guard denies it. Print the response body.
+   - **`withdraw --to 0x… --amount`:** guard check (withdrawals count toward the daily cap) → relay.
+   - **`balance`:** sync (Envio) and list per pool.
+   - **`guard set --per-payment 1 --daily 10 --allow veil:0x… --expires 2026-10-31`** and **`guard get`:** a policy file `~/.veil/guard-<wallet>.json`. Keep a spend log with reserve → settle/release, like Gloam `mcp/src/spendGuard.ts`. Rolling 24 h window. **No guard file = no spending allowed** (fail closed).
+6. Every command supports `--json` (inherited) and returns machine-readable results. Use `CommandError(code, message, hint)` for failures.
+7. **README must say plainly:** "Private payments are submitted by the Veil relayer, so MetaMask's outflow policy doesn't see them. The plugin enforces its own caps (guard). Deposits go through MetaMask policy."
+8. `skills/veil-payments/SKILL.md` for agents:
+   - always run `balance` and `guard get` first;
+   - confirm with the human before `pay` or `withdraw` above $1;
+   - never retry a failed payment blindly (check `balance` first);
+   - stop on `[AWAITING_MFA]`;
+   - never print seeds.
+9. **Install and test:**
+
+```bash
+npm run build
+rm -rf node_modules/@metamask/agent-wallet && ln -s "$(npm root -g)/@metamask/agent-wallet" node_modules/@metamask/agent-wallet
+mm config set experimentalPlugins true
+mm config set experimentalAllowUnverifiedInstalls true
+mm plugins install "file:$PWD" --accept-permissions
+mm veil setup --chain-id 10143
+```
+
+   **Testnet writes through `mm` fail with "Invalid chainId"** unless Monad testnet is declared in `~/.metamask/wallets.json` → `data.customEvmChains` with RPC `https://testnet-rpc.monad.xyz` (see the Perpl README). If that doesn't work, test writes on **mainnet** with $1–2 and the caps from §16.
+10. Publish to npm as `@<your-scope>/veil-mm-plugin`, or document the git install.
+
+**Done when:** a terminal session shows `mm veil setup`, `deposit` (approved through MetaMask), `guard set`, then `x402 fetch` against the demo API returning 200, and `guard get` showing the reduced remaining cap. Record this for the demo video.
+
+---
+
+### Phase 8: Chainlink CRE workflow (Day 4)
+
+Read first: `docs-offline/chainlink-cre-ts-full.txt`:
+- "Part 1: Project Setup", "Part 2: Fetching Offchain Data" and "Part 4: Writing Onchain" (TS);
+- "Using Secrets in Simulation";
+- "Simulating Workflows";
+- "Forwarder Directory";
+- "Service quotas" (limits).
+
+Requires Bun ≥ 1.2.21, CRE CLI ≥ 1.30.0 (Monad testnet) and `@chainlink/cre-sdk` ≥ 1.19.0.
+
+**Limits per run** (design around these):
+- 15 HTTP calls;
+- 15 EVM reads;
+- 5 secret fetches;
+- 50 consensus calls;
+- 10M gas per write;
+- 5 minutes per run;
+- cron no faster than every 30 s.
+
+So: **one EVM read per vault** (`activePosts(0, 12)` returns ids, xUserIds and lastImpressions in one call), **one HTTP call per post** (≤ 12 posts per vault per run), **one report write per vault**.
+
+1. `cre init` in `services/cre` → TypeScript, Hello World template, workflow name `veil-impressions`.
+2. `config.staging.json`:
+
+```json
+{ "schedule": "0 */10 * * * *",
+  "chainSelectorName": "monad-testnet",
+  "gasLimit": "3000000",
+  "vaults": ["0x<campaign vault>"],
+  "requiredTag": "#ad",
+  "requiredMention": "@yourproject",
+  "xApiBase": "https://api.x.com/2" }
+```
+
+3. Secrets: `secrets.yaml` → `secretsNames: { X_BEARER_TOKEN: [X_BEARER_TOKEN_VALUE] }`. Put `X_BEARER_TOKEN_VALUE=…` in `.env` (simulation). Read it **inside the handler**: `runtime.getSecret({ id: "X_BEARER_TOKEN" }).result().value`. Secrets are blocked during handler registration.
+4. `main.ts` structure (adapt names to the SDK version in the docs):
+
+```ts
+import { CronCapability, HTTPClient, EVMClient, handler, Runner, getNetwork, encodeCallMsg, bytesToHex, hexToBase64,
+         LAST_FINALIZED_BLOCK_NUMBER, ConsensusAggregationByFields, median, type Runtime, type NodeRuntime } from "@chainlink/cre-sdk"
+import { encodeAbiParameters, parseAbiParameters, encodeFunctionData, decodeFunctionResult, zeroAddress } from "viem"
+import { StreamVaultAbi } from "../contracts/abi"   // ABI of StreamVault (activePosts, onReport)
+
+type Config = { schedule: string; chainSelectorName: string; gasLimit: string; vaults: string[];
+                requiredTag: string; requiredMention: string; xApiBase: string }
+
+const initWorkflow = (config: Config) => [handler(new CronCapability().trigger({ schedule: config.schedule }), onCron)]
+
+const onCron = (runtime: Runtime<Config>) => {
+  const net = getNetwork({ chainFamily: "evm", chainSelectorName: runtime.config.chainSelectorName })
+  if (!net) throw new Error("unknown chain")
+  const evm = new EVMClient(net.chainSelector.selector)
+  const token = runtime.getSecret({ id: "X_BEARER_TOKEN" }).result().value
+  for (const vault of runtime.config.vaults) {
+    // 1 EVM read
+    const res = evm.callContract(runtime, { call: encodeCallMsg({ from: zeroAddress, to: vault as `0x${string}`,
+      data: encodeFunctionData({ abi: StreamVaultAbi, functionName: "activePosts", args: [0n, 12n] }) }),
+      blockNumber: LAST_FINALIZED_BLOCK_NUMBER }).result()
+    const [ids, users] = decodeFunctionResult({ abi: StreamVaultAbi, functionName: "activePosts", data: bytesToHex(res.data) }) as [bigint[], bigint[], bigint[]]
+    if (ids.length === 0) continue
+    const imps: bigint[] = [], valid: boolean[] = []
+    for (let i = 0; i < ids.length; i++) {
+      // 1 HTTP call per post, median across nodes; valid encoded as 0/1 so median = majority
+      const r = runtime.runInNodeMode(
+        (nr: NodeRuntime<Config>) => fetchPost(nr, token, ids[i], users[i]),
+        ConsensusAggregationByFields<{ impressions: number; valid: number }>({ impressions: median<number>(), valid: median<number>() })
+      )().result()
+      imps.push(BigInt(Math.floor(r.impressions))); valid.push(r.valid >= 1)
+    }
+    const payload = encodeAbiParameters(parseAbiParameters("uint256[] ids, uint64[] imps, bool[] valid"), [ids, imps, valid])
+    const report = runtime.report({ encodedPayload: hexToBase64(payload), encoderName: "evm", signingAlgo: "ecdsa", hashingAlgo: "keccak256" }).result()
+    evm.writeReport(runtime, { receiver: vault, report, gasConfig: { gasLimit: runtime.config.gasLimit } }).result()
+  }
+  return "ok"
+}
+
+function fetchPost(nr: NodeRuntime<Config>, token: string, id: bigint, xUserId: bigint) {
+  const http = new HTTPClient()
+  const resp = http.sendRequest(nr, { method: "GET",
+    url: `${nr.config.xApiBase}/tweets/${id}?tweet.fields=public_metrics,author_id,text`,
+    headers: { Authorization: `Bearer ${token}` } }).result()
+  if (resp.statusCode !== 200) return { impressions: 0, valid: 0 }          // deleted or not found → invalid
+  const j = JSON.parse(new TextDecoder().decode(resp.body))
+  if (!j.data) return { impressions: 0, valid: 0 }
+  const text = String(j.data.text ?? "").toLowerCase()
+  const ok = String(j.data.author_id) === xUserId.toString()
+    && text.includes(nr.config.requiredTag.toLowerCase())
+    && text.includes(nr.config.requiredMention.toLowerCase())
+  return { impressions: Number(j.data.public_metrics?.impression_count ?? 0), valid: ok ? 1 : 0 }
+}
+
+export async function main() { const runner = await Runner.newRunner<Config>(); await runner.run(initWorkflow) }
+```
+
+   **Check against the docs:**
+   - the exact header field shape in `sendRequest`;
+   - whether `secret.value` is the right property;
+   - the `ConsensusAggregationByFields` and `median` import names;
+   - how `runInNodeMode` passes extra arguments (if closures over `token` aren't allowed, fetch the secret inside node mode, still ≤ 5 secret calls total).
+
+   If a 404 for a deleted post makes `sendRequest` throw, catch it and return `valid: 0`.
+5. **Simulation that writes on-chain:**
+   1. Deploy the campaign with `forwarder = 0xB9F79d863261869B234c481D1f9A7af84AeAd192` (testnet MockKeystoneForwarder).
+   2. Run `cre workflow simulate veil-impressions --target staging-settings --broadcast` (needs `CRE_ETH_PRIVATE_KEY` funded with testnet MON).
+   3. The report lands through the mock forwarder in `StreamVault.onReport`. Confirm the `Report` and `Payout` events on the explorer.
+6. **If Early Access is granted:** deploy the workflow (`cre workflow deploy`), and create a new campaign with `forwarder = 0xF8344CFd5c43616a4366C34E3EEE75af79a74482` (testnet) or `0x76c9…5E62` (mainnet). The vault's forwarder can't be changed after creation (by design).
+7. **Demo fallback** if the X API is unavailable: set `xApiBase` to a mock endpoint in `apps/demo-api` (`/mock-x/tweets/:id`) that returns the same JSON shape. **Label it clearly** in the demo ("mock X API for the recording"). Never present mock data as real.
+
+**Done when:** one simulation with `--broadcast` produces `Report` + `Payout` events on testnet for a real (or clearly labelled mock) post, and the KOL's wallet shows the new private balance.
+
+---
+
+### Phase 9: Cleanverse verified mode (Day 4, if on schedule)
+
+- Already in the kit:
+  - `VerifiedVeilPool` (overrides `_beforeDeposit` and `_beforeWithdraw` to require `cvi.isVerified(addr)`);
+  - `ICviOracle`;
+  - `MockCviOracle` (attester sets expiry per wallet).
+- **Adapter for real Cleanverse attestations** (only if sandbox access arrives):
+  - write `CleanverseCviAdapter is ICviOracle`, which stores attestations submitted with an EIP-712 signature from Cleanverse's attester key and returns `isVerified = valid && !revoked && now < expiry`;
+  - pattern: `reference-repos/trustflow/contracts/src/oracles/CleanverseAttestationAdapter.sol`. Don't copy it; follow the idea.
+- App:
+  - a "Verified pool" toggle on Deposit;
+  - if the wallet isn't verified, show "Get verified with Cleanverse A-Pass" (link) and, on testnet, a "demo attest" button that calls a server route signing `attest(wallet, now + 30 days)` with the attester key.
+- Write-up: "Every coin in the verified pool entered from a verified identity and can only leave to one. Transfers inside stay private. Enforcement is in the contract, not the UI."
+
+**Done when:** an unverified wallet's deposit reverts with `NotVerified(address)`; after attestation it succeeds; a withdrawal to an unverified address reverts.
+
+---
+
+### Phase 10: Aurora fund-from-any-chain (Day 5, if on schedule)
+
+1. `GET https://intents-api.aurora.dev/api/tokens/{apiKey}` → `tokens[]` with `assetId`, `blockchain`, `symbol`, `decimals`. Cache it for a few minutes. Never build asset ids by hand. Destination: the entry with `blockchain: "monad"` and `symbol: "USDC"` (currently `nep245:v2_1.omni.hot.tg:143_2dmLwYWkCQKyTjeUPAsGJuiVLbFx`). Rate limits: 100 requests per 10 s and 2,000 per hour per key; poll status every 5–10 s, not faster.
+2. Quote:
+
+```js
+const res = await fetch(`https://intents-api.aurora.dev/api/quote/${AURORA_KEY}`, { method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ dry: false, confidentiality: "advanced", swapType: "EXACT_INPUT", amount: "<atomic origin units>",
+    originAsset, destinationAsset, depositType: "ORIGIN_CHAIN", recipient: "<user's Monad public EOA>",
+    recipientType: "DESTINATION_CHAIN", refundTo: "<user's origin address>", refundType: "ORIGIN_CHAIN",
+    slippageTolerance: 100, deadline: new Date(Date.now() + 10 * 60_000).toISOString() }) })
+const { quote } = await res.json()   // quote.depositAddress, amountOut, minAmountOut
+```
+
+3. Show the deposit address, QR and amount. The user sends from any wallet on the origin chain.
+4. Optionally `POST /api/deposit/submit/{apiKey}` with the origin tx hash to speed up detection. Poll `GET /api/status/{apiKey}?depositAddress=…` every 5–10 s until `SUCCESS`, `REFUNDED` or `FAILED`.
+5. On `SUCCESS`, show "Funds arrived on Monad" and a one-click **Shield now** (Deposit flow with the received amount).
+6. Explain in the UI: "Confidential mode hides where the money came from. Shielding hides where it goes next."
+
+**Done when:** a small real swap (e.g. 2 USDC from Base) arrives on the Monad EOA and gets shielded; screenshot both steps for the write-up.
+
+---
+
+### Phase 11: Nansen screening (optional, only if everything else is green)
+
+- In the relayer, for every withdrawal recipient: call `POST https://api.nansen.ai/api/v1/profiler/address/counterparties` paid via x402 (`@x402/fetch` with the relayer's Monad USDC wallet).
+- Refuse when counterparties include labels you configure as high-risk (e.g. sanctioned or exploiter labels — inspect real responses first).
+- Cache per address for 24 h. Never block on a Nansen outage: fall back to the OFAC list only, and log it.
+- Note: label endpoints aren't available via x402.
+
+---
+
+### Phase 12: ERC-8004 registration (Day 5, 30 min)
+
+- Register the demo API ("Veil Quote API") and each demo agent in the Identity Registry `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`. Use the agent0 SDK or direct calls; check the Monad ERC-8004 guide.
+- Put the agent's Veil address in its registration metadata so agents can pay it privately.
+- Optional: after a paid x402 call, the agent leaves feedback in the Reputation Registry `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`.
+
+---
+
+### Phase 13: Mainnet capped beta (Day 5)
+
+1. Deploy the same contracts to **143** with `maxDepositAmount = 100_000_000` ($100) per transaction.
+2. Deploy pools for USDC and AUSD. The real AUSD freezes; disclose it.
+3. Set relayer `MIN_FEE` (e.g. 20,000 = $0.02) and fund the relayer with ~2 MON.
+4. Add chain 143 to Envio, the SDK `NETWORKS` and the app network switch (default: testnet for judges; mainnet behind a toggle with a "beta, capped" label).
+5. Do one real deposit → transfer → withdraw of $1 and save the tx links.
+6. **Never raise caps during the hackathon.** If something looks wrong, `setDepositsPaused(true)`. Withdrawals keep working.
+
+---
+
+### Phase 14: Docs, demo, submission (Day 5)
+
+1. `README.md`:
+   - what Veil is;
+   - live links (app, demo API, relayer status, verify page, Envio GraphQL);
+   - contract addresses (testnet + mainnet);
+   - how to run locally;
+   - a "What's live / what's not" table;
+   - the sponsor integration list (one paragraph each, naming exact files);
+   - **Prior art and dependencies** (Gloam design reference, Tornado Nova, circomlib, snarkjs, Mera, x402, CRE, Envio, OpenZeppelin).
+2. `docs/PRIVACY-MODEL.md` (§15 content), `docs/THREAT-MODEL.md` (§12 table plus trust assumptions: dev ceremony, relayer can censor but not steal, issuer freeze, X API trust in CRE).
+3. Demo video (≤ 3 min) following §17.
+4. Submission form: Track 04, every bounty from §2 that is built, repo link, demo link, video.
+
+---
+
+## 7. Detailed requirements that apply everywhere
+
+### 7.1 Error codes → user messages
+
+| Revert / code | Message |
+|---|---|
+| `UnknownRoot` | "Your wallet is out of date. Syncing and retrying…" (resync, rebuild, retry once) |
+| `NullifierAlreadySpent` | "This balance was already used. Refreshing your balance." |
+| `InvalidProof` / `BadExtDataHash` / `BadPublicAmount` | "Something went wrong building this payment. Nothing was sent." (log details) |
+| `DepositTooLarge` | "The beta limit is $X per deposit." |
+| `DepositsArePaused` | "Deposits are paused. You can still send and withdraw." |
+| `NotVerified` | "This pool is for verified identities only." |
+| Relayer `screened` | "This address can't receive funds through Veil." |
+| Relayer offline | "Private sending is temporarily unavailable. Try again in a minute." |
+| `PRF_UNAVAILABLE` | "This passkey provider doesn't support Veil. Use iCloud Keychain, Google Password Manager or 1Password." |
+
+### 7.2 Things that are always public (show these in the UI where relevant)
+
+- Deposit amounts and depositor address.
+- Withdrawal amounts and recipient.
+- `depositTo` recipient pubKey and amount (StreamVault payouts, drips, refunds).
+- Campaign rates and per-post payouts.
+- That a shielded transaction happened, and when.
+
+### 7.3 Agent guard (plugin)
+
+- **Policy:** `{ perPayment, daily, allowedRecipients[] (empty = any), expiresAt, pools[] }`.
+- **Spend log:** `{ id, ts, amount, fee, to, status: reserved|settled|released, txHash }`.
+- **Check order:**
+  1. Not expired.
+  2. The pool is allowed.
+  3. `amount + fee ≤ perPayment`.
+  4. Recipient allowed (if the list is non-empty).
+  5. `sum(reserved + settled in the last 24 h) + amount + fee ≤ daily`.
+  6. Reserve → submit → settle, or release on failure.
+- Use a file lock (Gloam `mcp/src/fileLock.ts` idea) so parallel agent runs can't overspend.
+
+---
+
+## 8. Day plan (Oct 8–12)
+
+| Day | Date | Phases | Done when |
+|---|---|---|---|
+| 1 | Wed 8 Oct | 0, 1, 2, start 3 | **Testnet smoke test green** (deposit → transfer → withdraw on Monad testnet) |
+| 2 | Thu 9 Oct | 3, 4, 5.1–5.3, start 6 (onboarding, deposit, send) | Two browser users exchange a private payment on testnet; Envio sync works |
+| 3 | Fri 10 Oct | 5.4 (x402), 7 (mm plugin), 6 (withdraw, receipts, verify) | `mm veil x402 fetch` gets 200 from the demo API |
+| 4 | Sat 11 Oct | 6 (payroll, campaigns, KOL, streams), 8 (CRE), 9 (Cleanverse) | CRE simulation pays a KOL on testnet; payroll of 3 rows works |
+| 5 | Sun 12 Oct | 10 (Aurora), 12, 13 (mainnet), 14 (docs, video, **submit**) | Submitted; links work in a private window |
+| — | Mon 13 Oct | Buffer only: fixes, no features | — |
+
+**Cut order if behind:**
 1. Nansen.
 2. Aurora.
-3. TimeMeter.
+3. Salary streams UI.
 4. Cleanverse.
-5. Mainnet (stay on testnet, but the `mm` demo then needs `customEvmChains`).
+5. Mainnet (stay on testnet; the mm demo then needs `customEvmChains`).
 6. Payroll claim links.
 
-**Never cut:** the Forge tests in §7, Envio sync, and the mm plugin guard.
+**Never cut:** Forge tests, e2e suite, Envio sync, plugin guard, honest README.
 
 ---
 
-## 10. Checks before every push to main
+## 9. Tests that must stay green (CI)
 
-- `forge test` (unit + fuzz + invariant), the circuit tests, and the SDK end-to-end against a local fork. All green.
-- The proof parity fixture is regenerated after any circuit change, and the zkey hash is updated in the SDK.
-- No secrets in the repo: `DEPLOYER_PK`, `X_BEARER`, `AURORA_KEY` and similar only in env or CRE secrets.
-- Gas: the logged `gasUsed` × 1.15 ≤ the limit sent.
-- The README's "what's live / what's not" table matches what's actually deployed (Gloam's "honest gates" habit).
+Add a GitHub Actions workflow running on every push:
+1. `cd contracts && forge test`
+2. `cd circuits && bash scripts/setup.sh` (cache the ptau), then `e2e`: start anvil, `node e2e.mjs`, `node circuit-negative.mjs`
+3. `pnpm --filter @veil/sdk test`
+4. Lint and typecheck for every package.
 
----
-
-## 11. Demo script (3 minutes)
-
-1. **0:00** The problem. Open the Monad explorer on someone's payroll wallet: every salary is visible. One line: "Privacy that needs an operator isn't private."
-2. **0:20** Face ID → a Veil account. The **Accounts** panel shows everything derived from one passkey (Mera ×2).
-3. **0:40** Fund from Base via Aurora (confidential), then shield. Explain what's hidden at each step.
-4. **1:00** Payroll: upload a CSV of 5 AUSD payees in Lagos and Nairobi and run it. The explorer shows only shielded transactions (Agora).
-5. **1:30** Terminal: a Claude Code agent with `mm veil x402 fetch` buys an API call in about 1–2 s. Show the guard cap, then the payee's receipt being verified (MetaMask, x402).
-6. **2:10** Campaign: the KOL posts with `#ad`, the CRE report lands, and the KOL's private balance increases. The project treasury appears nowhere (CRE).
-7. **2:40** Envio-powered transparency page: TVL, transaction counts, nothing personal. Verified mode with Cleanverse. Close: "no operator, client-side proofs, one Monad block."
+If CI is too slow because of the ceremony, commit `circuits/build/*_final.zkey` via Git LFS or a release asset, and skip setup in CI. **Never commit the ptau.**
 
 ---
 
-## 12. Submission checklist
+## 10. Known gotchas (each one cost someone hours)
 
-- [ ] The public repo has every commit after 7 Oct. README with a "Prior art and dependencies" section crediting Gloam as design inspiration.
-- [ ] Live app URL (testnet plus capped mainnet) and contract addresses on the explorer.
-- [ ] mm plugin published on npm (or installable from git) with install steps.
-- [ ] Demo video, 3 minutes or less.
-- [ ] Write-up: problem, how it works, sponsor integrations (one paragraph each, naming the exact file), privacy model and limits, dev ceremony disclosed.
-- [ ] Every bounty selected in the portal: Mera ×2, MetaMask, Envio, Agora Cross-Border, Chainlink CRE (+ Cleanverse, Aurora if built).
-- [ ] Track 04 selected.
-
----
-
-## 13. Risks and open questions
-
-| Risk | Mitigation |
+| Gotcha | Fix |
 |---|---|
-| The ZK core slips | Lower risk because Gloam's working circuits, setup scripts and audit lessons are the reference. Our only changes are key-owned notes and 2 inputs. Safety gate at the end of Day 1: fall back to Gloam's simpler 1-in/2-out shape |
-| Solana Clock In (12 Oct) runs in parallel | Split the days explicitly once we pick the Clock In project. Don't let both slip to 12 Oct |
-| Mera PRF unavailable in the judge's browser | The demo video uses Safari or iOS. The README lists supported authenticators. Read-only mode lets anyone browse without signing in |
-| MetaMask agent wallet signatures may not be deterministic | Fall back to a locally generated, encrypted key plus `mm veil export` |
-| X API impression delay or cost | Poll every 10 min. Pay only increases. Cap per post. State the delay |
-| CRE Early Access not granted in time | Simulation with `--broadcast` is a real on-chain write. Confirm with the bounty text |
-| Issuer freeze on AUSD or USDC | Separate pools, caps, disclosure |
-| Privacy limits (amounts visible at deposit and withdrawal, timing) | Explain in PRIVACY-MODEL.md. In the UI, suggest round amounts and a delay before withdrawing |
-| Regulatory optics of a privacy pool | Verified mode (Cleanverse), OFAC screening at the relayer, receipts and view keys, the disclosed-ad rule for KOL streams |
-| Bounty texts unknown | Day 0: read them all and update §5 |
+| Hermez/zkevm ptau links return 403 | Use the PSE ppot URL in §5 |
+| `snarkjs zkey contribute` hangs forever | Always pass `-e="<random hex>"` |
+| Proof verifies in JS but `InvalidProof` on-chain | pi_b coordinates must be swapped (`[[b01,b00],[b11,b10]]`); public input order must be §3.4 |
+| `BadExtDataHash` | `abi.encode` of the struct as a **tuple** (viem `encodeAbiParameters([{type:"tuple", components:[…]}], [ext])`), then `% p`. Field order exactly as §3.5 |
+| Local root ≠ on-chain root | Leaves out of order or missing; both outputs of a `transact` are inserted in order (output 0 then 1); `depositTo` inserts one |
+| `eth_getLogs` errors on Monad | RPCs cap ranges at 100–1,000 blocks; chunk by 100, or use Envio |
+| Transactions cost more than expected | Monad charges the gas **limit**; send `estimate × 1.15` |
+| `PRF_UNAVAILABLE` on desktop Chrome | Locally saved Chrome passkeys lack PRF. Use Google Password Manager, iCloud Keychain or 1Password; demo on Safari or iOS |
+| Accounts "disappear" after a domain change | Passkeys are bound to `rpId`. Fix the domain on Day 0 |
+| mm plugin: "window.addEventListener is not a function" | Two copies of `@metamask/agent-wallet`; symlink the global one into `node_modules` |
+| mm testnet writes stuck on "Submitting…" | MetaMask's RPC proxy rejects 10143; declare `customEvmChains` or use mainnet |
+| CRE `getSecret` fails | Only call it inside a trigger handler |
+| CRE simulation consensus looks trivial | Simulation runs one node; real BFT consensus happens only when deployed |
+| CRE write reverts with `NotForwarder` | The vault's `forwarder` must be the simulation forwarder when simulating, the production one when deployed |
+| Envio Cloud deploy rejected | `envio` version must be exact (no `^`) |
+| Next.js build fails on snarkjs | webpack fallback `fs: false, path: false, crypto: false`; run proving in a Web Worker |
+| JSON serialization of amounts | bigint → decimal strings everywhere (API bodies, localStorage) |
+| Payroll double-pays after reload | Persist pending state before submit; reconcile with `isSpent` on resume |
+| AUSD/USDC frozen by issuer | Can't be fixed in code. Separate pools, caps, disclosure |
+| Relayer nonce collisions | One process, one in-memory queue, retry once on nonce errors |
 
 ---
 
-## 14. Sources
+## 11. Lessons from Gloam's audits (with the test that proves we avoided each)
+
+| Gloam finding | Our protection | Test |
+|---|---|---|
+| H-P1/C1: client-supplied commitment at deposit → pool drained | Deposits only via proof (`publicAmount` computed on-chain) or `depositTo` (commitment computed on-chain) | e2e "TS extDataHash == Solidity", `BadPublicAmount` test, `depositTo` note opens in TS |
+| H1: cross-asset swap broke solvency | One pool per asset, no swaps | Balance invariant fuzz test |
+| Kensho C2: field overflow | `Num2Bits(128)` on all amounts | `circuit-negative.mjs` 2^128 and field-wrap cases |
+| Relayer could redirect funds | `extDataHash` binds recipient, relayer, fee and memos | e2e tamper tests (`BadExtDataHash`, `InvalidProof`) |
+| Bearer notes: payer could spend back (x402 "sweep") | Key-owned notes | e2e "A cannot prove a spend of B's note" |
+| M-1: plaintext secrets in localStorage | At-rest key from Mera index 3 | Manual check: localStorage holds only ciphertext |
+| L-1: memo event revealed sender | Memos inside pool events; relayer is `msg.sender` | Look at the event on the explorer |
+| M-4: reversible protections / admin withdraw | No admin withdraw; verifier immutable; two-step owner; pause only stops deposits | Forge test: withdrawals work while paused |
+| F-2: issuer freeze | Disclosure + caps + separate pools | README |
+| Stale-root rejections under load | Permanent `knownRoots` | e2e "proof against an older root still lands" |
+
+---
+
+## 12. Threat model summary (put in `docs/THREAT-MODEL.md`)
+
+| Actor | Can | Cannot |
+|---|---|---|
+| Relayer | Refuse or delay transactions; see IPs and timing | Change recipient, amount or fee; spend notes |
+| Envio indexer | Serve wrong or missing data (wallet detects it via `isKnownRoot`) | Spend or forge notes |
+| Pool owner | Pause deposits; change the deposit cap | Move funds; change the verifier; block withdrawals |
+| CRE / X API | Misreport impressions (bounded by caps per post and campaign) | Pay a non-allowlisted KOL; exceed the budget |
+| Token issuer (USDC/AUSD) | Freeze the pool's balance | — |
+| Dev ceremony participants | Forge proofs if all contributors colluded (disclosed: dev ceremony) | — |
+| Public observer | See deposits, withdrawals, `depositTo` payouts, timing | Link deposits to withdrawals or private transfers; see private amounts |
+
+---
+
+## 13. Repository files to create early
+
+- `.env.example`: `DEPLOYER_PK=`, `RELAYER_PK=`, `MONAD_TESTNET_RPC=https://testnet-rpc.monad.xyz`, `MONAD_RPC=https://rpc.monad.xyz`, `X_BEARER_TOKEN=`, `CRE_ETH_PRIVATE_KEY=`, `NEXT_PUBLIC_RELAYER_URL=`, `NEXT_PUBLIC_ENVIO_URL=`, `NEXT_PUBLIC_AURORA_KEY=`, `VEIL_PASSPHRASE=`, `CVI_ATTESTER_PK=`
+- `deployments/testnet.json`, `deployments/mainnet.json` (§Phase 2)
+- `docs/NOTES.md`: a running log of tx hashes, deviations from this file and decisions
+
+---
+
+## 14. Definition of done (whole project)
+
+- [ ] Every "Done when" in Phases 1–8 passes; 9–12 if built.
+- [ ] CI green.
+- [ ] Testnet: deposit, private send, withdraw, payroll, receipt verify, x402 via mm plugin, CRE payout. All demonstrated with tx links in `docs/NOTES.md`.
+- [ ] Mainnet capped beta: one real $1 round trip.
+- [ ] README with live links, addresses, honest status, prior art.
+- [ ] Demo video ≤ 3 min.
+- [ ] Submitted on 12 Oct.
+
+---
+
+## 15. Privacy model (put in `docs/PRIVACY-MODEL.md` and the write-up)
+
+- **Hidden:**
+  - who paid whom inside the pool;
+  - private transfer amounts;
+  - links between deposits and withdrawals;
+  - a KOL's or employee's total earnings across campaigns and where they cash out;
+  - an agent's spending history.
+- **Public:**
+  - deposit and withdrawal amounts and addresses;
+  - `depositTo` payouts (StreamVault) and campaign rates;
+  - timing;
+  - the existence of shielded transactions.
+- **Privacy is only as strong as the anonymity set.** Advise users:
+  - wait before withdrawing;
+  - withdraw round amounts;
+  - use fresh withdrawal addresses.
+- **No operator can see your payments.** Proofs are made on your device. The relayer only sees an already-proven transaction.
+- **Disclosure is opt-in:** a receipt reveals one note; the audit view key reveals incoming notes to whoever holds it.
+- **Dev trusted setup:** fine for a testnet/beta, not for production.
+
+---
+
+## 16. Mainnet beta limits
+
+| Setting | Value |
+|---|---|
+| `maxDepositAmount` per pool | 100 USDC / 100 AUSD (`100_000_000`) |
+| Total exposure target | ≤ $500 across pools |
+| Relayer MON balance | ~2 MON (top up as needed) |
+| Campaign budgets | ≤ $50 |
+| Pause procedure | `setDepositsPaused(true)` from the owner key; withdrawals keep working |
+
+---
+
+## 17. Demo script (≤ 3 min)
+
+1. **0:00** The problem: an explorer view of a public payroll wallet. "Privacy that needs an operator isn't private."
+2. **0:20** Face ID → Veil account. The Accounts panel: one passkey → public wallet, private account, audit key, two agents, campaigns (Mera ×2).
+3. **0:40** Fund from Base via Aurora (confidential) → Shield. Say what's hidden at each step.
+4. **1:00** Payroll: CSV of 5 payees in Lagos and Nairobi, in AUSD. The explorer shows only shielded transactions (Agora).
+5. **1:30** Terminal: Claude Code + `mm veil x402 fetch` buys an API call in ~2 s. Show `guard get`, then verify the merchant's receipt (MetaMask, x402).
+6. **2:10** Campaign: KOL post with #ad → CRE simulation report → the KOL's private balance increases. The treasury is never visible (CRE).
+7. **2:40** Transparency page (Envio). Verified pool (Cleanverse). Close: "No operator. Proofs on your device. Settled in one Monad block."
+
+---
+
+## 18. Sources
 
 **Monad:**
-- [Privacy providers](https://docs.monad.xyz/tooling-and-infra/privacy)
-- [Unlink on Monad](https://monad.xyz/blog/privacy-comes-to-monad-with-unlink)
-- [Mera guide](https://docs.monad.xyz/guides/mera)
-- [x402 guide](https://docs.monad.xyz/guides/x402)
-- [Agentic payments](https://docs.monad.xyz/tooling-and-infra/agentic-payments)
-- [Differences from Ethereum](https://docs.monad.xyz/developer-essentials/differences)
-- [Opcode pricing](https://docs.monad.xyz/developer-essentials/opcode-pricing)
-- [RPC differences](https://docs.monad.xyz/reference/rpc-differences)
-- [Metropolis page](https://monad.xyz/developers/hackathons/metropolis)
+- docs.monad.xyz: guides/mera, guides/x402, tooling-and-infra/privacy, tooling-and-infra/agentic-payments, developer-essentials/differences, developer-essentials/opcode-pricing, reference/rpc-differences, guides/erc-8004
+- monad.xyz/blog/privacy-comes-to-monad-with-unlink
 
-**Category Labs privacy tease:**
-- [Startup Fortune](https://startupfortune.com/monad-teases-privacy-tech-at-singapore-summit-and-mon-jumps-18/)
+**Unlink:** docs.unlink.xyz (trust-model, supported-chains)
 
-**Unlink:**
-- [Docs](https://docs.unlink.xyz/)
-- [Supported chains](https://docs.unlink.xyz/supported-chains)
-- [Trust model](https://docs.unlink.xyz/trust-model)
-- [Quickstart](https://docs.unlink.xyz/quickstart)
+**MetaMask:** docs.metamask.io/llms-agent-wallet-full.txt (offline copy included), github.com/MetaMask/agent-wallet-plugin-template
 
-**MetaMask:**
-- [Agent Wallet docs (full)](https://docs.metamask.io/llms-agent-wallet-full.txt)
-- [Plugin template](https://github.com/MetaMask/agent-wallet-plugin-template)
-- [MonAgent](https://github.com/zakyirsyaad/monagent)
-- [mm-plugin-perpl](https://github.com/akugone/mm-plugin-perpl)
+**Chainlink CRE:** docs.chain.link/cre/llms-full-ts.txt (offline copy included)
 
-**Chainlink CRE:**
-- [CRE docs (TS, full)](https://docs.chain.link/cre/llms-full-ts.txt)
-- [Supported networks](https://docs.chain.link/cre/supported-networks-ts)
+**Envio:** docs.envio.dev/llms-full.txt (offline copy included)
 
-**Envio:**
-- [Monad testnet](https://envio.dev/chains/monad-testnet)
+**Aurora:** docs.intents.aurora.dev/llms-full.txt (offline copy included)
 
-**Agora / AUSD:**
-- [AUSD on Aave Monad: assessment](https://governance.aave.com/t/agora-usd-ausd-on-aave-monad-assessments/25251)
+**x402:** github.com/coinbase/x402 `specs/x402-specification-v2.md`, `specs/transports-v2/http.md`
 
-**Aurora:**
-- [Intents docs (full)](https://docs.intents.aurora.dev/llms-full.txt)
-- 1Click token list (`1click.chaindefuser.com/v0/tokens`)
+**Nansen:** docs.nansen.ai/getting-started/agentic-payments/x402-payments
 
-**Nansen:**
-- [x402 payments](https://docs.nansen.ai/getting-started/agentic-payments/x402-payments.md)
-
-**Cleanverse:**
-- [Build hackathon](https://cleanverse.com/hackathon)
-- [TrustFlow](https://github.com/pranay123-stack/trustflow)
-- [SpendClear](https://github.com/Cubiczan/spendclear-cleanverse)
+**AUSD risk:** governance.aave.com/t/agora-usd-ausd-on-aave-monad-assessments/25251
 
 **Prior art:**
-- [Gloam](https://github.com/cryptoduke01/gloam) (MIT; design reference only)
-- [Privacy Pools core](https://github.com/0xbow-io/privacy-pools-core) (Apache-2.0)
+- github.com/cryptoduke01/gloam (snapshot included; MIT packages; reference only)
 - Tornado Nova (2-in/2-out design)
+- github.com/0xbow-io/privacy-pools-core (Apache-2.0)
 
-**Earlier research in this repo:** [`RESEARCH.md`](RESEARCH.md), [`SPONSORS.md`](SPONSORS.md).
+**Earlier research in our repo:** `RESEARCH.md`, `SPONSORS.md` (same folder as this file).
