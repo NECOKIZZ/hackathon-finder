@@ -23,7 +23,7 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 | Oct 14 (kickoff) | Portaldot Hacker House | $5.2k | — | ⛔ | Not open yet + low prize |
 | Oct 15–18 | Graph Hacks (FalkorDB) | $20k, mostly hardware | Synesis agent memory | 🟡 | |
 | Oct 16 – Nov 15 | Mezo Buildathon | $7k in MEZO | — | ⛔ | Low prize, paid in token |
-| **Oct 23, 15:00 UTC** (registration closed Oct 11, 13:00 UTC) | **Chogathon 2026** (Chog NFTs) | $15k, 50 winners (may drop to $10k) | TBD: the Chog NFT has to be essential to the app | 🎯 | Judged on Novelty 30%, Fun 20%, Retention 20%, Clarity 15%, Execution 15%. Demo video ≤ 3 min. $CHOG use earns bonus points. The site also shows Oct 9 as a close date, so confirm with the organisers |
+| **Oct 23, 15:00 UTC** (registration closed Oct 11, 13:00 UTC) | **Chogathon 2026** (Chog NFTs) | $15k, 50 winners (may drop to $10k) | TBD: the Chog NFT has to be essential to the app | 🎯 registered | Judged on Novelty 30%, Fun 20%, Retention 20%, Clarity 15%, Execution 15%. Demo video ≤ 3 min. $CHOG use earns bonus points. The site also shows Oct 9 as a close date, so confirm with the organisers |
 | Oct 23 | Amazon Developer Hackathon | $138k | — | ⛔ | Fire TV / Alexa+ / Ring |
 | Oct 25 | Web3 for Social Good (SMU) | Pending | — | ⛔ | In-person final in Singapore |
 | **Oct 28, 23:59 UTC** | **Zecathon** (Zcash privacy) | $100k: 5 tracks × $15k + $20k grand prize | **004 Proof of Funds** (Core & Tooling) or **005 Ajo** (Shielded Payments) | 🎯 | Code written in window, open source, one submission per account |
@@ -50,6 +50,8 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 
 ## Also running
 - **Weekend spread logger** (GitHub Actions, `tools/spread-logger/`): logs stock-token prices across DEX pools. Ask for a summary after Monday's open.
+
+Full open list, ranked by deadline, including the Oct 15 roundup: [`OPEN-BY-DEADLINE.md`](OPEN-BY-DEADLINE.md).
 
 ## Links (open events)
 - Zecathon: https://thezecathon.com/
