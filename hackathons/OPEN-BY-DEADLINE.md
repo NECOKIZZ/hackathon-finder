@@ -18,7 +18,7 @@
 | 3 | Oct 20 | Ascend Builder Competition (Elysium) | $17.5k (10k / 5k / 2.5k) | 🎯 Veil ([008](../ideas/008-veil-elysium.md)) | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
 | 4 | **Oct 23, 15:00 UTC** | **Chogathon 2026** | $15k, 50 winners | **🎯 registered** | ✔ checked | https://chogathon.chog.xyz/ |
 | 5 | Oct 25 (submissions) · shortlist presents in person in Singapore on Nov 26 | Web3 for Social Good (SMU) | Prize "Pending" | 🟡 back in | repo (verified Oct 4) | https://dorahacks.io/hackathon/web3-social-good-2026/detail |
-| 6 | Oct 27 | GitLab Life After Code | $45k | 🆕 | roundup (page returned 403) | https://gitlab-transcend.devpost.com · https://x.com/gitlab/status/2107897027791114291 |
+| 6 | Oct 27 | GitLab Life After Code | $45k | 🎯 **entering** (idea to pick) | roundup (page returned 403) | https://gitlab-transcend.devpost.com · https://x.com/gitlab/status/2107897027791114291 |
 | 7 | **Oct 27** (registration open until Oct 22) | **Open Agent Hackathon** | up to $20k | 🎯 registered (007 Agent Compute Staking) | user-confirmed Oct 16 | https://hackathon.genai.works/ |
 | 8 | **Oct 28, 23:59 UTC** | **Zecathon** | $100k | 🎯 | ✔ checked | https://thezecathon.com/ |
 | 9 | Oct 30 | Qloo Agentic Hackathon | $25k | 🎯 001 variant (taste-matched KOLs) | repo | https://qloo.devpost.com/ |
@@ -28,7 +28,7 @@
 | 13 | Nov 11 | Nimiq Mini Apps Competition, Cycle 3 | $17k USDC | 🆕 | roundup | https://x.com/miniappscomp/status/2110403290328449276 · https://x.com/nimiq/status/2110400145028170212 |
 | 14 | Nov 11 | Ryo-chan Virtual Hackathon | $15k in tokens | 🟡 | repo | https://ryobuild.com/ |
 | 15 | **Nov 12, 3:00pm EST** | **PayPal + AI: "Build What's Next"** (Devpost) | $60k+ per PayPal, $67.5k on Devpost | 🟡 back in, confirmed real | ✔ checked | https://developer.paypal.com/community/blog/PayPal_AI_Hackathon |
-| 16 | **Nov 13 (submissions)** · build from Oct 25 · applications closed Oct 23 | **Airwallex Agentic Banking** | $100k headline (prizes and credits listed add up to $156k) | 🎯 registered (Synesis) | ✔ checked | https://airwallex.hackerearth.com · https://x.com/airwallex/status/2107148620617420932 |
+| 16 | **Nov 13 (submissions)** · build from Oct 25 · applications closed Oct 23 | **Airwallex Agentic Banking** | $100k headline (prizes and credits listed add up to $156k) | ✅ **applied** (Oct 16): build Synesis from Oct 25 | ✔ checked | https://airwallex.hackerearth.com · https://x.com/airwallex/status/2107148620617420932 |
 | 17 | Nov 14 (registration closes Nov 5) | Lexsi AI Safety & Alignment | $30k+ in prizes and credits | 🆕 | ✔ checked | https://hackathon.lexsi.ai · https://x.com/Lexsi_labs/status/2109553969202921975 |
 | 18 | Nov 30 (repo) or Dec 10 (roundup) | QIE Hackathon 3.0 | $17k | 🟡 | repo + roundup, dates conflict | https://hackathon.qie.digital · https://x.com/qieblockchain/status/2098645510848410088 |
 | 19 | **Dec 7, 23:59 UTC** (provisional) | X Layer TapeOut Accelerate (OKX / X Layer × TapeOut) | 100k USDT (1 × 20k, 5 × 10k, 5 × 6k), paid in milestone stages | 🎯 **entering, last in line**: only after the October builds ship | ✔ checked | https://web3.okx.com/xlayer/build-x-series · [OKX Wallet post](https://x.com/OKXWallet_CN/status/2110923153388273991) |
