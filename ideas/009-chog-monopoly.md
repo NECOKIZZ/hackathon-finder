@@ -2,6 +2,7 @@
 
 **Status:** Picked (Chogathon, registered) · **Captured:** 2026-10-16 · **Revised:** v3, 2026-10-16
 **Deadline:** Oct 23, 15:00 UTC · **Judging:** Novelty 30% · Fun 20% · Retention 20% · Clarity 15% · Execution 15%
+**Sim:** [`prototypes/chog-city/index.html`](../prototypes/chog-city/index.html)
 **History:**
 - v1: self-playing board with action tiles ([original](../hackathons/2026-10-chogathon/ORIGINAL-README.md)).
 - v2: Harberger pricing and the 1904 Landlord's Game story.
@@ -132,6 +133,22 @@ Two tiers:
 | **Autopilot** | Optional | **The Chog's agent plays conservatively** (rolls, pays, never borrows) for a 5% fee. You survive, but you don't thrive |
 
 **The design rule:** nobody is forced to play, but the city keeps moving, and **the money flows to whoever is paying attention.**
+
+
+## 4b. Chat and negotiation
+- **City Hall:** a public group chat. Every big rent payment, deal, margin call and liquidation is announced there, and players trash-talk and advertise deals.
+- **DMs:** private negotiation with any Chog. Offers are **structured cards** ("buy 2× Hash Quay at 42 each") that settle as **atomic swaps** on accept: shares and cash move in one transaction, so nobody gets scammed.
+- **Bots** send unprompted offers: landlords try to complete their colour sets, and vultures DM you when your health is red ("I'll take your shares at 85% before Uncle Chog does").
+
+## 4c. Wall Street retention: fresh money in
+- **Margin calls:** when your health drops below 1.2 you get a public 📣 margin call. You can **top up from your own wallet**; fresh money pays down your debt first.
+- **Nearly broke?** Top up to stay in the game, or ride it out and wait for the Prosperity dividend.
+- **Why it works:** people top up rather than lose their position. That's the same loss aversion that keeps traders adding margin. **Every top-up is new money entering the city**: it grows the Bank, the curves and the Commons, and feeds the pot everyone competes for.
+- **Responsible design:**
+  - Practice City (play money) is the default.
+  - Per-season top-up caps on the live city.
+  - Clear liquidation maths.
+  - No pressure loops on minors.
 
 ## 5. Seasons and money flow
 - **Season:** 7 days. At the end:
