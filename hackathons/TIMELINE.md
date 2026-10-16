@@ -1,6 +1,6 @@
 # Hackathon Timeline
 
-Everything researched on 2026-10-04, in deadline order. All dates are 2026.
+Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All dates are 2026.
 
 **Status:** 🎯 = we plan to enter · 🟡 = maybe · ⛔ = skipped (reason given) · ✅ closed
 
@@ -15,15 +15,15 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 | Oct 8 | Bitget AI Hackathon S2 | $50k USDT (unverified) | Delphi | ⛔ | Rules not found; too soon |
 | Oct 9 | HackCanton S3 | $50k | — | ⛔ | DAML, not our stack |
 | Oct 10–11 | #neathack | $10k | — | ⛔ | Clashes |
-| **Oct 11, 12:00 UTC** | **BNB Hack: Tokenized Stocks** | $20k + 2 × $2k specials | **003 ETF League** (or 002 Busha for Stocks / weekend spread engine) | 🎯 | Ondo / xStocks / bStocks central, BSC mainnet, spot only. Dev-experience report = 25% |
-| **Oct 12, 11:59pm PT** | **Colosseum Crypto World's Fair** | $840k total; Robinhood Chain track 5 × $5k; 20 × $15k standouts | **Kickoff** (+ Monday Open markets as new work) | 🎯 | Pre-existing code allowed if disclosed; judged on work since Sep 14. One submission per team |
-| **Oct 13** | **Monad Metropolis** | $250k+ (tracks + ~$81k bounties) | **001 KOL Impression Streams** (Track 03 + CRE, Privy, MetaMask, Nansen, Agora, Aurora bounties) | 🎯 | New work since Sep 1. See `2026-10-monad-metropolis/` |
+| **Oct 11, 12:00 UTC** | **BNB Hack: Tokenized Stocks** | $20k + 2 × $2k specials | **003 ETF League** (or 002 Busha for Stocks / weekend spread engine) | ✅ submitted | Ondo / xStocks / bStocks central, BSC mainnet, spot only. Dev-experience report = 25% |
+| **Oct 12, 11:59pm PT** | **Colosseum Crypto World's Fair** | $840k total; Robinhood Chain track 5 × $5k; 20 × $15k standouts | **Kickoff** (+ Monday Open markets as new work) | ✅ submitted | Pre-existing code allowed if disclosed; judged on work since Sep 14. One submission per team |
+| **Oct 13** | **Monad Metropolis** | $250k+ (tracks + ~$81k bounties) | **001 KOL Impression Streams** (Track 03 + CRE, Privy, MetaMask, Nansen, Agora, Aurora bounties) | ✅ submitted | New work since Sep 1. See `2026-10-monad-metropolis/` |
 | Oct 13 (registration) · build Oct 15–20 | Open Agent Hackathon | up to $20k | 007 Agent Compute Staking | 🟡 | Prize detail not public |
-| **Oct 14** | **Arc Microgrants Mainnet Challenge** | 20 × $500 USDC | Synesis / Cuerate / `.arc` redeployed on Arc mainnet | 🎯 | Rolling review: submit early |
+| **Oct 14** | **Arc Microgrants Mainnet Challenge** | 20 × $500 USDC | Synesis / Cuerate / `.arc` redeployed on Arc mainnet | ✅ submitted | Rolling review: submit early |
 | Oct 14 (kickoff) | Portaldot Hacker House | $5.2k | — | ⛔ | Not open yet + low prize |
 | Oct 15–18 | Graph Hacks (FalkorDB) | $20k, mostly hardware | Synesis agent memory | 🟡 | |
 | Oct 16 – Nov 15 | Mezo Buildathon | $7k in MEZO | — | ⛔ | Low prize, paid in token |
-| **Oct 19** | Midnight Buildathon **Wave 2** | $4k, split by points (6 submissions so far) | — | 🟡 | Probably too soon. Wave 3 is the target |
+| **Oct 23, 15:00 UTC** (registration closed Oct 11, 13:00 UTC) | **Chogathon 2026** (Chog NFTs) | $15k, 50 winners (may drop to $10k) | TBD: the Chog NFT has to be essential to the app | 🎯 registered | Judged on Novelty 30%, Fun 20%, Retention 20%, Clarity 15%, Execution 15%. Demo video ≤ 3 min. $CHOG use earns bonus points. The site also shows Oct 9 as a close date, so confirm with the organisers |
 | Oct 23 | Amazon Developer Hackathon | $138k | — | ⛔ | Fire TV / Alexa+ / Ring |
 | Oct 25 | Web3 for Social Good (SMU) | Pending | — | ⛔ | In-person final in Singapore |
 | **Oct 28, 23:59 UTC** | **Zecathon** (Zcash privacy) | $100k: 5 tracks × $15k + $20k grand prize | **004 Proof of Funds** (Core & Tooling) or **005 Ajo** (Shielded Payments) | 🎯 | Code written in window, open source, one submission per account |
@@ -40,7 +40,6 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 | Nov 11 | Ryo-chan Virtual Hackathon | $15k in tokens + Tokyo trip | — | 🟡 | Couldn't read the page |
 | Nov 12 | PayPal + AI | $60k+ (unverified) | 001 fiat variant / Synesis agent | 🟡 | Confirm the event exists first |
 | Nov 12 | Gemma 4 Developer Agent (Kaggle) | $65k | — | ⛔ | ML fine-tuning |
-| **Oct 27 – Nov 16** | **Midnight Buildathon Wave 3** | $5k, split by points | **005 Ajo on Midnight** (separate code from the Zcash version) | 🎯 | Contract holds the pot. 40% of the score on private-state engineering |
 | Nov 18 | Meta VR Start | $1M | — | ⛔ | Quest apps |
 | Nov 30 | QIE Hackathon 3.0 | $17k (half paid after traction milestones) | `.arc`-style names on QIE | 🟡 | Mainnet + real users needed |
 
@@ -51,3 +50,18 @@ Everything researched on 2026-10-04, in deadline order. All dates are 2026.
 
 ## Also running
 - **Weekend spread logger** (GitHub Actions, `tools/spread-logger/`): logs stock-token prices across DEX pools. Ask for a summary after Monday's open.
+
+Full open list, ranked by deadline, including the Oct 15 roundup: [`OPEN-BY-DEADLINE.md`](OPEN-BY-DEADLINE.md).
+
+## Links (open events)
+- Zecathon: https://thezecathon.com/
+- BLI Legal Tech Hackathon 2: https://dorahacks.io/hackathon/legal-hack-2026/detail
+- Chogathon 2026: https://chogathon.chog.xyz/
+- Circle Grants: https://www.circle.com/grant
+- Graph Hacks (FalkorDB): https://www.wemakedevs.org/hackathons/falkordb
+- Open Agent Hackathon: https://hackathon.genai.works/
+- Qloo Agentic Hackathon: https://qloo.devpost.com/
+- Nebius × NVIDIA Global AI: https://nebiusglobalaihackathon.devpost.com/
+- Ryo-chan Virtual Hackathon: https://ryobuild.com/
+- PayPal + AI: https://developer.paypal.com/ (no event page found yet)
+- QIE Hackathon 3.0: https://hackathon.qie.digital
