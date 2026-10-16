@@ -45,7 +45,7 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 | Nov 12 | Gemma 4 Developer Agent (Kaggle) | $65k | — | ⛔ | ML fine-tuning |
 | Nov 18 | Meta VR Start | $1M | — | ⛔ | Quest apps |
 | Nov 30 | QIE Hackathon 3.0 | $17k (half paid after traction milestones) | `.arc`-style names on QIE | 🟡 | Mainnet + real users needed |
-| Dec 7 (provisional) | X Layer TapeOut Accelerate | 100k USDT, paid in milestones | RE Agent or a game using TapeOut contracts | 🟡 | Must build in the TapeOut ecosystem on X Layer |
+| Dec 7 (provisional) | X Layer TapeOut Accelerate | 100k USDT, paid in milestones | RE Agent or a game using TapeOut contracts | 🎯 last in line | Must build in the TapeOut ecosystem on X Layer |
 
 ## Rolling
 | Programme | Money | Our entry | Status |
