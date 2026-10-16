@@ -1,0 +1,556 @@
+<title>Chog Monopoly</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a 1904 patent drawing come to life. Board left, your Chog's desk right, the morning report and ledger below. */
+:root {
+  --paper: #eef0ea;
+  --sheet: #f8f9f5;
+  --ink: #1c2742;
+  --ink-soft: #55607a;
+  --rule: #c9cfd6;
+  --accent: #5b3fe0;
+  --accent-soft: #e6e0ff;
+  --good: #2c7a4b;
+  --bad: #b23a3a;
+  --g-ruby: #c0424c;
+  --g-amber: #c4861a;
+  --g-jade: #2e8a68;
+  --g-violet: #7b52cc;
+  --p1: #5b3fe0; --p2: #e2725b; --p3: #2f9fb5; --p4: #d4a41c;
+  --p5: #4f9a4a; --p6: #c45796; --p7: #7d6a58; --p8: #3d6fd6;
+  --display: "Old Standard TT", "Times New Roman", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1a33; --sheet: #15223f; --ink: #dfe7f7; --ink-soft: #9aa8c4; --rule: #2c3b5e;
+    --accent: #a593ff; --accent-soft: #2a2457; --good: #6fcf97; --bad: #ff8a80;
+    --g-ruby: #ef6b74; --g-amber: #f0b44a; --g-jade: #4fc49a; --g-violet: #b08cff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1a33; --sheet: #15223f; --ink: #dfe7f7; --ink-soft: #9aa8c4; --rule: #2c3b5e;
+  --accent: #a593ff; --accent-soft: #2a2457; --good: #6fcf97; --bad: #ff8a80;
+  --g-ruby: #ef6b74; --g-amber: #f0b44a; --g-jade: #4fc49a; --g-violet: #b08cff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+  background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size: 28px 28px; background-attachment: fixed;
+  background-color: var(--paper);
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 46px); line-height: 1; margin: 0; letter-spacing: -0.01em; }
+h1 em { font-weight: 400; color: var(--accent); }
+.sub { margin: 6px 0 0; color: var(--ink-soft); max-width: 60ch; text-wrap: balance; }
+.patent { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); border: 1px solid var(--rule); background: var(--sheet); padding: 6px 10px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button { font: 500 14px var(--body); color: var(--ink); background: var(--sheet); border: 1px solid var(--ink); padding: 8px 14px; cursor: pointer; border-radius: 2px; }
+button:hover { background: var(--accent-soft); }
+button.primary { background: var(--accent); color: var(--sheet); border-color: var(--accent); }
+button.primary:hover { filter: brightness(1.08); background: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:disabled { opacity: .5; cursor: default; }
+.sim-tag { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+/* Board */
+.board {
+  display: grid; grid-template-columns: 1.25fr repeat(4, 1fr) 1.25fr; grid-template-rows: 1.25fr repeat(4, 1fr) 1.25fr;
+  aspect-ratio: 1 / 1; width: 100%; max-width: 100%; background: var(--ink); gap: 1px; border: 2px solid var(--ink);
+}
+.tile { background: var(--sheet); position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; padding: 4px 5px; font-size: 11px; line-height: 1.2; }
+.tile .band { height: 7px; margin: -4px -5px 4px; }
+.tile .name { font-weight: 600; font-size: 10.5px; }
+.tile .price { font-family: var(--mono); font-size: 10px; color: var(--ink-soft); margin-top: auto; font-variant-numeric: tabular-nums; }
+.tile .owner { position: absolute; top: 9px; right: 4px; width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--ink); }
+.tile.corner { justify-content: center; align-items: center; text-align: center; font-family: var(--display); font-size: 14px; }
+.tile.corner small { font-family: var(--body); font-size: 10px; color: var(--ink-soft); }
+.tile.special { justify-content: center; align-items: center; text-align: center; font-family: var(--display); font-size: 13px; }
+.tile.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { 0% { box-shadow: inset 0 0 0 3px var(--accent); } 100% { box-shadow: inset 0 0 0 0 var(--accent); } }
+.pieces { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 2px; }
+.pieces svg { width: 17px; height: 17px; }
+.center { grid-area: 2 / 2 / 6 / 6; background: var(--sheet); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; gap: 6px; min-width: 0; }
+.center .daylabel { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.center .bigname { font-family: var(--display); font-size: clamp(20px, 3.4vw, 32px); line-height: 1.05; }
+.center .bigname em { color: var(--accent); }
+.dice { display: flex; gap: 6px; }
+.die { width: 30px; height: 30px; border: 1.5px solid var(--ink); border-radius: 5px; display: grid; place-items: center; font: 600 15px var(--mono); background: var(--paper); }
+.potline { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ticker { font-size: 11.5px; color: var(--ink-soft); max-width: 34ch; min-height: 3.6em; }
+@media (max-width: 520px) {
+  .tile .name { font-size: 8.5px; } .tile .price { font-size: 8.5px; } .tile { padding: 3px; }
+  .pieces svg { width: 11px; height: 11px; } .tile.corner { font-size: 11px; } .tile.special { font-size: 10px; }
+  .ticker { display: none; } .dice .die { width: 24px; height: 24px; font-size: 12px; }
+}
+
+/* Panels */
+.panel { background: var(--sheet); border: 1px solid var(--ink); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.panel h2 { font-family: var(--display); font-size: 22px; margin: 0; font-weight: 700; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.me { display: flex; gap: 12px; align-items: center; }
+.me svg { width: 56px; height: 56px; flex: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.stat { background: var(--sheet); padding: 8px 10px; }
+.stat b { display: block; font: 500 18px var(--mono); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 11px; color: var(--ink-soft); }
+.field { display: grid; gap: 4px; }
+.field label { font-size: 13px; font-weight: 500; display: flex; justify-content: space-between; gap: 8px; }
+.field label output { font-family: var(--mono); color: var(--accent); }
+.field small { color: var(--ink-soft); font-size: 12px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+select { font: 14px var(--body); padding: 6px 8px; background: var(--sheet); color: var(--ink); border: 1px solid var(--ink); }
+.props { display: grid; gap: 8px; }
+.prop { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; border-top: 1px solid var(--rule); padding-top: 8px; }
+.prop .sw { width: 10px; align-self: stretch; }
+.prop .pn { font-weight: 600; font-size: 14px; }
+.prop .pm { font-size: 12px; color: var(--ink-soft); font-family: var(--mono); }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper button { padding: 2px 9px; font-size: 15px; }
+.stepper b { font: 500 14px var(--mono); min-width: 4.2ch; text-align: center; font-variant-numeric: tabular-nums; }
+.chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid currentColor; margin-top: 3px; }
+.chip.ok { color: var(--good); } .chip.risk { color: var(--bad); }
+.empty { color: var(--ink-soft); font-size: 13px; border: 1px dashed var(--rule); padding: 12px; }
+
+.lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .lower { grid-template-columns: minmax(0, 1fr); } }
+.report { border-left: 4px solid var(--accent); padding-left: 12px; display: grid; gap: 4px; }
+.report .rt { font-family: var(--display); font-size: 19px; font-style: italic; }
+.report ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.report .net { font-family: var(--mono); font-size: 13px; }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.feed { max-height: 220px; overflow: auto; font-size: 13px; display: grid; gap: 3px; border-top: 1px solid var(--rule); padding-top: 8px; }
+.feed div { color: var(--ink-soft); } .feed div b { color: var(--ink); font-weight: 600; }
+.season { background: var(--accent-soft); padding: 10px 12px; font-size: 13.5px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); padding: 6px 8px; border-bottom: 1px solid var(--ink); }
+td { padding: 6px 8px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
+td.n { font-family: var(--mono); text-align: right; } th.n { text-align: right; }
+tr.you td { background: var(--accent-soft); font-weight: 600; }
+.cell-chog { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.cell-chog svg { width: 20px; height: 20px; }
+details { border-top: 1px solid var(--rule); padding-top: 10px; }
+summary { cursor: pointer; font-weight: 600; }
+.dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 10px; }
+.rules ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; max-width: 70ch; }
+.check { font-family: var(--mono); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .tile.flash { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Chog <em>Monopoly</em></h1>
+      <p class="sub">The Landlord's Game as Lizzie Magie meant it, rebuilt for Monad. Every street is always for sale at its owner's own price, and the taxes go to everyone.</p>
+    </div>
+    <div class="patent">U.S. Patent 748,626 · 1904 · revived on-chain</div>
+  </header>
+
+  <div class="controls">
+    <button class="primary" id="btnDay" type="button">Play next day</button>
+    <button id="btnWeek" type="button">Play a week</button>
+    <button id="btnReset" type="button">New game</button>
+    <span class="sim-tag">Simulation · 8 Chogs (you + 7 bots) · test CHOG, no real money</span>
+  </div>
+
+  <div class="main">
+    <div class="board" id="board" aria-label="Game board"></div>
+
+    <section class="panel" aria-labelledby="meTitle">
+      <div class="me">
+        <span id="meToken"></span>
+        <div>
+          <div class="eyebrow">Your piece and your wallet</div>
+          <h2 id="meTitle">Chog #1024</h2>
+          <div style="font-size:13px;color:var(--ink-soft)">ERC-6551 account · plays once a day while you're away</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="sCash">100.0</b><span>Cash (CHOG)</span></div>
+        <div class="stat"><b id="sWorth">100.0</b><span>Net worth</span></div>
+        <div class="stat"><b id="sRank">#1</b><span>Rank</span></div>
+      </div>
+
+      <div class="field">
+        <label for="markup">Declare new streets at <output id="markupOut">1.3×</output></label>
+        <input type="range" id="markup" min="1" max="2.5" step="0.1" value="1.3">
+        <small>A higher price means more rent and fewer buyouts, but more tax every day.</small>
+      </div>
+      <div class="field">
+        <label for="buyout">Buy out rivals' streets up to <output id="buyoutOut">1.4× base</output></label>
+        <input type="range" id="buyout" min="0" max="3" step="0.1" value="1.4">
+        <small>Your Chog pays the owner's declared price when it lands there. 0 means never.</small>
+      </div>
+
+      <div>
+        <div class="eyebrow" style="margin-bottom:6px">Your streets</div>
+        <div class="props" id="myProps"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="lower">
+    <section class="panel" aria-labelledby="repTitle">
+      <h2 id="repTitle">Morning report</h2>
+      <div class="report" id="report"></div>
+      <div class="season" id="season"></div>
+      <div class="eyebrow">Around the board</div>
+      <div class="feed" id="feed"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="lbTitle">
+      <h2 id="lbTitle">Ledger</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>#</th><th>Chog</th><th>Style</th><th class="n">Cash</th><th class="n">Streets</th><th class="n">Net worth</th></tr></thead>
+          <tbody id="lb"></tbody>
+        </table>
+      </div>
+      <div class="check" id="check"></div>
+      <details>
+        <summary>Economy dials</summary>
+        <div class="dials">
+          <div class="field">
+            <label for="tax">Daily tax on declared price <output id="taxOut">1.0%</output></label>
+            <input type="range" id="tax" min="0.2" max="3" step="0.1" value="1">
+          </div>
+          <div class="field">
+            <label for="rent">Rent per landing <output id="rentOut">5%</output></label>
+            <input type="range" id="rent" min="2" max="12" step="1" value="5">
+          </div>
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <section class="panel rules" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle">How a day works</h2>
+    <ol>
+      <li>Every Chog rolls two dice and moves. Passing Go pays 2 CHOG from the shared pot.</li>
+      <li><b>Unowned street:</b> the Chog buys it at the base price, which goes into the pot. It then declares its own price.</li>
+      <li><b>Someone else's street:</b> pay rent of 5% of the declared price, doubled for a full colour set. Rent splits 85% to the owner, 10% to the pot and 5% burned. Then the Chog may buy the street at the declared price.</li>
+      <li><b>Every night:</b> owners pay tax of 1% of each declared price into the pot. A street whose tax can't be paid goes back to the bank.</li>
+      <li><b>Every 7 days:</b> the pot pays out. Half goes to the top 3 by net worth (Monopolist, split 50/30/20). Half is shared equally by all 8 Chogs (Prosperity).</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => (Math.round(n * 10) / 10).toFixed(1);
+
+  const GROUPS = {
+    ruby:   { label: "Ruby Row",     base: 20, color: "--g-ruby" },
+    amber:  { label: "Amber Docks",  base: 30, color: "--g-amber" },
+    jade:   { label: "Jade Heights", base: 40, color: "--g-jade" },
+    violet: { label: "Violet Ridge", base: 50, color: "--g-violet" },
+  };
+  // 20 tiles, clockwise from Go (bottom-right corner).
+  const TILES = [
+    { t: "go", name: "Go" },
+    { t: "prop", g: "ruby", name: "Mempool Ln" },
+    { t: "prop", g: "ruby", name: "Gas Alley" },
+    { t: "chance", name: "Chance" },
+    { t: "prop", g: "ruby", name: "Nonce St" },
+    { t: "jail", name: "Jail" },
+    { t: "prop", g: "amber", name: "Block Wharf" },
+    { t: "bank", name: "Bank" },
+    { t: "prop", g: "amber", name: "Hash Quay" },
+    { t: "prop", g: "amber", name: "Merkle Pier" },
+    { t: "tax", name: "Commons Tax" },
+    { t: "prop", g: "jade", name: "Validator Ave" },
+    { t: "prop", g: "jade", name: "Epoch Sq" },
+    { t: "chance", name: "Chance" },
+    { t: "prop", g: "jade", name: "Consensus Ct" },
+    { t: "bank", name: "Bank" },
+    { t: "prop", g: "violet", name: "Monad Blvd" },
+    { t: "prop", g: "violet", name: "Parallel Pkwy" },
+    { t: "tax", name: "Commons Tax" },
+    { t: "prop", g: "violet", name: "Purple Hill" },
+  ];
+  // Grid position (row, col) for each tile index on a 6x6 perimeter.
+  const POS = [];
+  for (let i = 0; i <= 5; i++) POS.push([6, 6 - i]);   // 0..5 bottom row, right to left
+  for (let i = 1; i <= 5; i++) POS.push([6 - i, 1]);   // 6..10 left column, upward
+  for (let i = 1; i <= 5; i++) POS.push([1, 1 + i]);   // 11..15 top row, left to right
+  for (let i = 1; i <= 4; i++) POS.push([1 + i, 6]);   // 16..19 right column, downward
+
+  const STYLES = {
+    safe:     { label: "Safe",     markup: 1.8, buyout: 0,   reserve: 40 },
+    balanced: { label: "Balanced", markup: 1.3, buyout: 1.4, reserve: 25 },
+    degen:    { label: "Degen",    markup: 1.1, buyout: 2.5, reserve: 5 },
+  };
+  const ROSTER = [
+    { name: "Chog #1024", style: "you", color: "--p1" },
+    { name: "Chog #88",   style: "safe", color: "--p2" },
+    { name: "Chog #412",  style: "degen", color: "--p3" },
+    { name: "Chog #2088", style: "balanced", color: "--p4" },
+    { name: "Chog #777",  style: "degen", color: "--p5" },
+    { name: "Chog #3141", style: "safe", color: "--p6" },
+    { name: "Chog #1337", style: "balanced", color: "--p7" },
+    { name: "Chog #5150", style: "balanced", color: "--p8" },
+  ];
+
+  let rng, S, timer = null;
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  const d6 = () => 1 + Math.floor(rng() * 6);
+
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#888"; }
+  function chogSVG(colorVar, ring) {
+    const c = `var(${colorVar})`;
+    return `<svg viewBox="0 0 40 40" aria-hidden="true">
+      ${ring ? `<circle cx="20" cy="22" r="18.5" fill="none" stroke="var(--ink)" stroke-width="2"/>` : ""}
+      <path d="M9 14 L12 3 L17 11 Z" fill="${c}"/><path d="M31 14 L28 3 L23 11 Z" fill="${c}"/>
+      <ellipse cx="20" cy="23" rx="14" ry="13" fill="${c}"/>
+      <circle cx="15" cy="21" r="3.2" fill="var(--sheet)"/><circle cx="25" cy="21" r="3.2" fill="var(--sheet)"/>
+      <circle cx="15.8" cy="21.5" r="1.5" fill="var(--ink)"/><circle cx="25.8" cy="21.5" r="1.5" fill="var(--ink)"/>
+      <ellipse cx="20" cy="29" rx="4" ry="2.6" fill="var(--sheet)" opacity=".8"/>
+    </svg>`;
+  }
+
+  function settings() {
+    return { tax: +$("tax").value / 100, rent: +$("rent").value / 100, markup: +$("markup").value, buyout: +$("buyout").value };
+  }
+  function styleOf(c) {
+    if (c.you) { const s = settings(); return { markup: s.markup, buyout: s.buyout, reserve: 25 }; }
+    return STYLES[c.style];
+  }
+
+  function newGame() {
+    rng = mulberry32((Date.now() & 0xffffffff) >>> 0);
+    S = {
+      day: 0, pot: 0, burned: 0, deposits: 0, ext: 0,
+      chogs: ROSTER.map((r, i) => ({ id: i, name: r.name, style: r.style, color: r.color, you: i === 0, cash: 100, pos: 0, jail: 0, shield: false })),
+      props: {}, feed: [], report: null, season: null, lastRoll: [0, 0], lastTile: -1, ticker: [],
+    };
+    S.deposits = S.chogs.length * 100;
+    TILES.forEach((t, i) => { if (t.t === "prop") S.props[i] = { owner: null, price: GROUPS[t.g].base }; });
+    stop();
+    render();
+  }
+
+  const me = () => S.chogs[0];
+  const ownsSet = (ownerId, g) => TILES.every((t, i) => t.t !== "prop" || t.g !== g || S.props[i].owner === ownerId);
+  const worth = (c) => c.cash + Object.values(S.props).filter(p => p.owner === c.id).reduce((a, p) => a + p.price, 0);
+  function note(text, you) { S.feed.unshift(`<span>Day ${S.day}</span> · ${text}`); if (S.feed.length > 60) S.feed.pop(); S.ticker.unshift(text.replace(/<[^>]+>/g, "")); S.ticker = S.ticker.slice(0, 2); if (you) S.report.lines.push(text); }
+  const nm = (c) => `<b>${c.you ? "Your Chog" : c.name}</b>`;
+
+  function resolve(c, idx) {
+    const t = TILES[idx], st = styleOf(c), set = settings();
+    if (t.t === "prop") {
+      const p = S.props[idx], base = GROUPS[t.g].base;
+      if (p.owner === null) {
+        if (c.cash - base >= st.reserve) {
+          c.cash -= base; S.pot += base;
+          p.owner = c.id; p.price = Math.round(base * st.markup);
+          note(`${nm(c)} bought <b>${t.name}</b> for ${base} and declared it at ${p.price}`, c.you);
+        } else if (c.you) note(`Your Chog landed on unowned <b>${t.name}</b> but kept its cash reserve`, true);
+      } else if (p.owner === c.id) {
+        if (c.you) note(`Your Chog visited its own <b>${t.name}</b>`, true);
+      } else {
+        const owner = S.chogs[p.owner];
+        let rent = set.rent * p.price * (ownsSet(owner.id, t.g) ? 2 : 1);
+        if (c.shield) { c.shield = false; note(`${nm(c)} used a shield on <b>${t.name}</b> and paid no rent`, c.you); rent = 0; }
+        const pay = Math.min(rent, c.cash);
+        if (pay > 0) {
+          c.cash -= pay; owner.cash += pay * 0.85; S.pot += pay * 0.10; S.burned += pay * 0.05;
+          if (c.you) note(`Your Chog paid ${fmt(pay)} rent on <b>${t.name}</b> to ${owner.name}`, true);
+          if (owner.you) { S.report.rentIn += pay * 0.85; S.report.rentFrom.push(`${c.name} on ${t.name}`); }
+        }
+        if (st.buyout > 0 && p.price <= st.buyout * base && c.cash - p.price >= st.reserve) {
+          c.cash -= p.price; owner.cash += p.price;
+          const old = p.price;
+          p.owner = c.id; p.price = Math.round(Math.max(base * st.markup, old * 1.2));
+          note(`${nm(c)} bought out <b>${t.name}</b> from ${owner.you ? "you" : owner.name} at its declared ${old}`, c.you || owner.you);
+        }
+      }
+    } else if (t.t === "bank") {
+      const y = c.cash * 0.015; c.cash += y; S.ext += y;
+      if (c.you) note(`Your Chog parked cash at the Bank and earned ${fmt(y)} yield`, true);
+    } else if (t.t === "tax") {
+      const x = c.cash * 0.05; c.cash -= x; S.pot += x;
+      if (c.you) note(`Your Chog paid ${fmt(x)} Commons Tax into the pot`, true);
+    } else if (t.t === "jail") {
+      c.jail = 1; note(`${nm(c)} went to Jail and sits out tomorrow`, c.you);
+    } else if (t.t === "chance") {
+      const r = rng();
+      if (r < 0.3) { const g = Math.min(4, S.pot); S.pot -= g; c.cash += g; note(`${nm(c)} drew Chance: grant of ${fmt(g)} from the commons`, c.you); }
+      else if (r < 0.55) { const x = Math.min(4, c.cash); c.cash -= x; S.pot += x; note(`${nm(c)} drew Chance: repairs, ${fmt(x)} to the pot`, c.you); }
+      else if (r < 0.8) { c.shield = true; note(`${nm(c)} drew Chance: a shield against the next rent`, c.you); }
+      else { c.pos = 0; const s = Math.min(2, S.pot); S.pot -= s; c.cash += s; note(`${nm(c)} drew Chance: advance to Go`, c.you); }
+    }
+  }
+
+  function stepDay() {
+    S.day++;
+    const startWorth = worth(me());
+    S.report = { day: S.day, lines: [], rentIn: 0, rentFrom: [], tax: 0, start: startWorth };
+    const order = S.chogs.map(c => c.id).sort(() => rng() - 0.5);
+    for (const id of order) {
+      const c = S.chogs[id];
+      if (c.jail > 0) { c.jail--; if (c.you) note("Your Chog sat out the day in Jail", true); continue; }
+      const a = d6(), b = d6(), old = c.pos;
+      c.pos = (c.pos + a + b) % TILES.length;
+      if (c.you) { S.lastRoll = [a, b]; S.lastTile = c.pos; note(`Your Chog rolled ${a}+${b} and landed on <b>${TILES[c.pos].name}</b>`, true); }
+      if (c.pos < old && c.pos !== 0) { const s = Math.min(2, S.pot); S.pot -= s; c.cash += s; }
+      resolve(c, c.pos);
+    }
+    // Nightly Harberger tax.
+    const set = settings();
+    for (const [i, p] of Object.entries(S.props)) {
+      if (p.owner === null) continue;
+      const o = S.chogs[p.owner], t = set.tax * p.price;
+      if (o.cash >= t) { o.cash -= t; S.pot += t; if (o.you) S.report.tax += t; }
+      else { note(`${nm(o)} couldn't pay tax on <b>${TILES[i].name}</b>, so it went back to the bank`, o.you); p.owner = null; p.price = GROUPS[TILES[i].g].base; }
+    }
+    if (S.report.rentIn > 0) S.report.lines.push(`Your streets earned ${fmt(S.report.rentIn)} rent from ${S.report.rentFrom.join(", ")}`);
+    if (S.report.tax > 0) S.report.lines.push(`You paid ${fmt(S.report.tax)} nightly tax on your streets`);
+    if (S.day % 7 === 0) payout();
+    S.report.end = worth(me());
+    render(true);
+  }
+
+  function payout() {
+    const pot = S.pot, half = pot / 2, each = half / S.chogs.length;
+    const ranked = [...S.chogs].sort((x, y) => worth(y) - worth(x));
+    const shares = [0.5, 0.3, 0.2];
+    ranked.slice(0, 3).forEach((c, i) => { c.cash += half * shares[i]; });
+    S.chogs.forEach(c => { c.cash += each; });
+    S.pot = 0;
+    const myRank = ranked.indexOf(me());
+    const myPrize = (myRank < 3 ? half * shares[myRank] : 0);
+    S.season = `<b>Season ${S.day / 7} paid out ${fmt(pot)} CHOG.</b> Monopolist prize: ${ranked.slice(0, 3).map((c, i) => `${c.you ? "you" : c.name} ${fmt(half * shares[i])}`).join(", ")}. Prosperity dividend: <b>${fmt(each)}</b> to every Chog.${myPrize ? ` You took ${fmt(myPrize + each)} in total.` : ""}`;
+    note(`<b>Season ${S.day / 7} payout:</b> ${fmt(pot)} CHOG split, ${fmt(each)} to every Chog`, true);
+  }
+
+  function render(flash) {
+    // Board
+    const board = $("board");
+    const byTile = {};
+    S.chogs.forEach(c => { (byTile[c.pos] = byTile[c.pos] || []).push(c); });
+    let html = "";
+    TILES.forEach((t, i) => {
+      const [r, col] = POS[i];
+      const corner = (i % 5 === 0);
+      const pieces = (byTile[i] || []).map(c => chogSVG(c.color, c.you)).join("");
+      let inner;
+      if (t.t === "prop") {
+        const p = S.props[i], g = GROUPS[t.g];
+        const owner = p.owner !== null ? S.chogs[p.owner] : null;
+        inner = `<div class="band" style="background:var(${g.color})"></div>
+          ${owner ? `<span class="owner" style="background:var(${owner.color})" title="Owned by ${owner.name}"></span>` : ""}
+          <div class="name">${t.name}</div>
+          <div class="pieces">${pieces}</div>
+          <div class="price">${owner ? "◆ " + p.price : "for sale " + g.base}</div>`;
+        html += `<div class="tile${flash && i === S.lastTile ? " flash" : ""}" style="grid-area:${r}/${col}" title="${t.name} · ${g.label}${owner ? " · owned by " + owner.name + " at " + p.price : " · unowned, base " + g.base}">${inner}</div>`;
+      } else {
+        const sub = { go: "collect 2", jail: "sit out a day", tax: "5% to the pot", bank: "+1.5% yield", chance: "draw a card" }[t.t];
+        html += `<div class="tile ${corner ? "corner" : "special"}${flash && i === S.lastTile ? " flash" : ""}" style="grid-area:${r}/${col}"><div>${t.name}<br><small>${sub}</small></div><div class="pieces">${pieces}</div></div>`;
+      }
+    });
+    const each = S.pot / 2 / S.chogs.length;
+    html += `<div class="center">
+      <div class="daylabel">Season ${Math.floor(S.day / 7) + (S.day % 7 === 0 && S.day > 0 ? 0 : 1)} · Day ${S.day === 0 ? 0 : ((S.day - 1) % 7) + 1} of 7</div>
+      <div class="bigname">The <em>Landlord's</em> Game</div>
+      <div class="dice"><div class="die">${S.lastRoll[0] || "–"}</div><div class="die">${S.lastRoll[1] || "–"}</div></div>
+      <div class="potline">Shared pot ${fmt(S.pot)} CHOG · dividend so far ${fmt(each)} each</div>
+      <div class="ticker">${S.ticker.join("<br>") || "Press Play next day to roll for every Chog."}</div>
+    </div>`;
+    board.innerHTML = html;
+
+    // Me
+    const m = me();
+    $("meToken").innerHTML = chogSVG(m.color, true);
+    const ranked = [...S.chogs].sort((x, y) => worth(y) - worth(x));
+    $("sCash").textContent = fmt(m.cash);
+    $("sWorth").textContent = fmt(worth(m));
+    $("sRank").textContent = "#" + (ranked.indexOf(m) + 1);
+
+    // My properties
+    const set = settings();
+    const mine = Object.entries(S.props).filter(([, p]) => p.owner === 0);
+    $("myProps").innerHTML = mine.length ? mine.map(([i, p]) => {
+      const t = TILES[i], g = GROUPS[t.g], full = ownsSet(0, t.g);
+      const takers = [];
+      if (p.price <= STYLES.balanced.buyout * g.base) takers.push("Balanced");
+      if (p.price <= STYLES.degen.buyout * g.base) takers.push("Degen");
+      const risk = takers.length ? `<span class="chip risk">${takers.join(" and ")} bots can buy this out</span>` : `<span class="chip ok">Safe from bot buyouts</span>`;
+      return `<div class="prop">
+        <span class="sw" style="background:var(${g.color})"></span>
+        <div><div class="pn">${t.name}${full ? " · full set, 2× rent" : ""}</div>
+          <div class="pm">rent ${fmt(set.rent * p.price * (full ? 2 : 1))} · tax ${fmt(set.tax * p.price)}/day</div>${risk}</div>
+        <div class="stepper"><button type="button" data-i="${i}" data-d="-0.1" aria-label="Lower price of ${t.name}">−</button><b>${p.price}</b><button type="button" data-i="${i}" data-d="0.1" aria-label="Raise price of ${t.name}">+</button></div>
+      </div>`;
+    }).join("") : `<div class="empty">No streets yet. When your Chog lands on an unowned street, it buys it at the base price and keeps 25 CHOG in reserve.</div>`;
+
+    // Report
+    const R = S.report;
+    if (R) {
+      const delta = R.end - R.start;
+      $("report").innerHTML = `<div class="rt">While you slept · Day ${R.day}</div>
+        <ul>${R.lines.map(l => `<li>${l}</li>`).join("") || "<li>A quiet day.</li>"}</ul>
+        <div class="net">Net worth ${fmt(R.end)} <span class="${delta >= 0 ? "pos" : "neg"}">(${delta >= 0 ? "+" : ""}${fmt(delta)})</span> · rank #${ranked.indexOf(m) + 1} of 8</div>`;
+    } else {
+      $("report").innerHTML = `<div class="rt">Nothing yet</div><div style="font-size:14px;color:var(--ink-soft)">After each day, this is the card your Chog leaves you: where it went, what it paid, what it earned.</div>`;
+    }
+    $("season").innerHTML = S.season || `Season pot pays out on day 7: half to the top 3 landlords, half shared by every Chog.`;
+    $("feed").innerHTML = S.feed.map(f => `<div>${f}</div>`).join("") || `<div>The board is quiet.</div>`;
+
+    // Ledger
+    $("lb").innerHTML = ranked.map((c, i) => {
+      const n = Object.values(S.props).filter(p => p.owner === c.id).length;
+      return `<tr class="${c.you ? "you" : ""}"><td>${i + 1}</td><td><span class="cell-chog">${chogSVG(c.color, c.you)}${c.you ? "You" : c.name}</span></td>
+        <td>${c.you ? "Your rules" : STYLES[c.style].label}</td><td class="n">${fmt(c.cash)}</td><td class="n">${n}</td><td class="n">${fmt(worth(c))}</td></tr>`;
+    }).join("");
+    const held = S.chogs.reduce((a, c) => a + c.cash, 0) + S.pot + S.burned;
+    const ok = Math.abs(held - (S.deposits + S.ext)) < 1e-6;
+    $("check").innerHTML = `Conservation check ${ok ? "✓" : "✗"} · cash ${fmt(S.chogs.reduce((a, c) => a + c.cash, 0))} + pot ${fmt(S.pot)} + burned ${fmt(S.burned)} = deposits ${fmt(S.deposits)} + bank yield ${fmt(S.ext)}. The game mints nothing.`;
+  }
+
+  function stop() { if (timer) { clearInterval(timer); timer = null; } $("btnWeek").textContent = "Play a week"; $("btnDay").disabled = false; }
+  function playWeek() {
+    if (timer) { stop(); return; }
+    let n = 0;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { for (let k = 0; k < 7; k++) stepDay(); return; }
+    $("btnWeek").textContent = "Pause"; $("btnDay").disabled = true;
+    timer = setInterval(() => { stepDay(); if (++n >= 7) stop(); }, 700);
+  }
+
+  $("btnDay").addEventListener("click", stepDay);
+  $("btnWeek").addEventListener("click", playWeek);
+  $("btnReset").addEventListener("click", newGame);
+  $("myProps").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-i]"); if (!b) return;
+    const p = S.props[b.dataset.i], base = GROUPS[TILES[b.dataset.i].g].base;
+    p.price = Math.max(base, Math.round(p.price * (1 + +b.dataset.d)));
+    render();
+  });
+  const outs = () => {
+    $("markupOut").textContent = (+$("markup").value).toFixed(1) + "×";
+    const bo = +$("buyout").value; $("buyoutOut").textContent = bo === 0 ? "never" : bo.toFixed(1) + "× base";
+    $("taxOut").textContent = (+$("tax").value).toFixed(1) + "%";
+    $("rentOut").textContent = $("rent").value + "%";
+  };
+  ["markup", "buyout", "tax", "rent"].forEach(id => $(id).addEventListener("input", () => { outs(); if (S) render(); }));
+  outs();
+  newGame();
+  // Open in a realistic state: three days already played.
+  for (let k = 0; k < 3; k++) stepDay();
+})();
+</script>

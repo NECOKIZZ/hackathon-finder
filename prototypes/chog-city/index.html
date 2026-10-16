@@ -1,0 +1,902 @@
+<title>Chog City</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a lamp-lit tabletop at night. Tilted toy-box board on the left, the player's desk (tabs) on the right, City Hall chat docked underneath. Single dark world by choice. */
+:root {
+  color-scheme: dark;
+  --night: #0d1d22;
+  --night-2: #132a31;
+  --panel: #18343c;
+  --panel-2: #1e3f48;
+  --line: #2c5560;
+  --text: #f1ead9;
+  --muted: #a9bdb9;
+  --wood: #d9b68a;
+  --wood-dark: #a9845a;
+  --tile: #f6ecd8;
+  --tile-ink: #3a2c1c;
+  --gold: #f4b73a;
+  --you: #8f74ff;
+  --good: #5fd39a;
+  --bad: #ff7b6b;
+  --warn: #ffc857;
+  --g-ruby: #d94b57; --g-amber: #e39b2d; --g-jade: #34a57f; --g-violet: #8a5cf0;
+  --p1: #8f74ff; --p2: #ff8a65; --p3: #4fc3d9; --p4: #f2c94c; --p5: #6fcf6a; --p6: #f06fb0; --p7: #c9a27e; --p8: #5b8cff;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--text); font-family: var(--body); font-size: 14.5px; line-height: 1.45;
+  background: radial-gradient(1200px 700px at 30% 10%, #1d4048 0%, var(--night) 60%), var(--night);
+  background-color: var(--night);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 28px; min-height: 100%;
+}
+button { font: 600 13.5px var(--body); color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--gold); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--gold); color: #2a1c05; border-color: var(--gold); font-family: var(--display); font-size: 15px; letter-spacing: .02em; }
+button.danger { border-color: var(--bad); color: var(--bad); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+input, select { font: 13.5px var(--body); color: var(--text); background: var(--night-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.app { max-width: 1260px; margin: 0 auto; display: grid; gap: 14px; }
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; }
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 4vw, 38px); margin: 0; letter-spacing: .01em; }
+.brand h1 span { color: var(--gold); }
+.brand p { margin: 0; color: var(--muted); font-size: 13px; }
+.clock { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.timechip { font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+.practice { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--warn); border: 1px dashed var(--warn); border-radius: 999px; padding: 4px 10px; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 960px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+/* Board */
+.stage { perspective: 1800px; perspective-origin: 50% 0%; padding: 6px 4% 0; margin-bottom: 9%; }
+.board {
+  position: relative; aspect-ratio: 1/1; width: 100%; max-width: 100%;
+  transform: rotateX(20deg); transform-origin: 50% 30%; transform-style: preserve-3d;
+  background: linear-gradient(135deg, var(--wood), var(--wood-dark)); border-radius: 18px; padding: 1.4%;
+  box-shadow: 0 30px 50px rgba(0,0,0,.45), inset 0 0 0 3px rgba(255,255,255,.15);
+}
+.grid { position: absolute; inset: 1.4%; display: grid; grid-template-columns: 1.25fr repeat(4, 1fr) 1.25fr; grid-template-rows: 1.25fr repeat(4, 1fr) 1.25fr; gap: 3px; }
+.tile { background: var(--tile); color: var(--tile-ink); border-radius: 6px; position: relative; overflow: visible; display: flex; flex-direction: column; padding: 3px 4px; min-width: 0; font-size: 10px; line-height: 1.15; }
+.tile .band { height: 6px; border-radius: 3px; margin-bottom: 2px; }
+.tile .nm { font-weight: 700; font-size: 10px; }
+.tile .px { font-family: var(--mono); font-size: 9px; opacity: .8; margin-top: auto; }
+.tile.special { align-items: center; justify-content: center; text-align: center; font-family: var(--display); font-size: 12px; font-weight: 600; }
+.tile.special .ic { font-size: 18px; line-height: 1; }
+.tile.special small { font-family: var(--body); font-size: 9px; opacity: .75; font-weight: 600; }
+.tile.flash { box-shadow: 0 0 0 3px var(--gold); }
+.tile .holders { display: flex; gap: 2px; margin-top: 2px; }
+.tile .holders i { width: 7px; height: 7px; border-radius: 50%; display: block; border: 1px solid rgba(0,0,0,.35); }
+.bld { position: absolute; left: 50%; bottom: 58%; transform-origin: 50% 100%; transform: translateX(-50%) rotateX(-20deg); display: flex; align-items: flex-end; gap: 2px; pointer-events: none; }
+.bld b { display: block; width: 9px; border-radius: 2px 2px 0 0; background: repeating-linear-gradient(180deg, var(--c) 0 5px, rgba(255,230,150,.85) 5px 7px, var(--c) 7px 9px); box-shadow: inset -2px 0 0 rgba(0,0,0,.25); transition: height .5s cubic-bezier(.3,1.6,.5,1); }
+.bld.cracked b { filter: grayscale(.6) brightness(.8); }
+.center { grid-area: 2 / 2 / 6 / 6; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.25), transparent 70%); border-radius: 12px; color: #3b2a14; }
+.center .title { font-family: var(--display); font-weight: 700; font-size: clamp(18px, 3.4vw, 34px); line-height: 1; }
+.center .sub { font-size: 12px; font-weight: 700; opacity: .8; }
+.dice { display: flex; gap: 8px; }
+.die { width: 34px; height: 34px; background: #fffaf0; border-radius: 8px; display: grid; place-items: center; font: 700 17px var(--mono); color: #2b1d0c; box-shadow: 0 4px 0 #c9b28d, 0 6px 10px rgba(0,0,0,.25); }
+.die.roll { animation: tumble .55s ease-out; }
+@keyframes tumble { 0% { transform: rotate(0) translateY(-14px); } 40% { transform: rotate(200deg) translateY(4px); } 70% { transform: rotate(330deg) translateY(-3px); } 100% { transform: rotate(360deg) translateY(0); } }
+.commons { font: 700 12px var(--mono); background: rgba(59,42,20,.12); padding: 3px 10px; border-radius: 999px; }
+
+.piece { position: absolute; width: 7.2%; aspect-ratio: 40/52; transform-origin: 50% 100%; transform: translate(-50%, -88%) rotateX(-20deg); transition: left .12s ease-out, top .12s ease-out; z-index: 5; pointer-events: none; }
+.piece svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 2px rgba(0,0,0,.35)); }
+.piece.hop svg { animation: hop .14s ease-out; }
+@keyframes hop { 50% { transform: translateY(-22%) scale(1.05, .95); } }
+.piece.you { z-index: 6; }
+
+.stamp { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%) rotate(-12deg); font: 700 clamp(22px, 5vw, 46px) var(--display); padding: 4px 18px; border: 5px solid currentColor; border-radius: 10px; letter-spacing: .06em; pointer-events: none; z-index: 20; animation: stamp 1.3s ease-out forwards; background: rgba(255,250,240,.85); }
+@keyframes stamp { 0% { transform: translate(-50%, -50%) rotate(-12deg) scale(2.2); opacity: 0; } 18% { transform: translate(-50%, -50%) rotate(-12deg) scale(1); opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+.coin { position: fixed; width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3b8, var(--gold) 55%, #b97d12); box-shadow: 0 0 0 1px #8a5a06; z-index: 50; pointer-events: none; transition: transform .7s cubic-bezier(.3,.2,.2,1), opacity .2s .6s; }
+
+/* Desk */
+.desk { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; min-width: 0; display: grid; }
+.tabs { display: flex; gap: 4px; padding: 8px 8px 0; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.tabs button { border-radius: 10px 10px 0 0; border-bottom: none; background: transparent; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--panel-2); color: var(--text); border-color: var(--line); }
+.tabs .dot { display: inline-block; width: 7px; height: 7px; background: var(--bad); border-radius: 50%; margin-left: 5px; vertical-align: middle; }
+.pane { padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.me { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; align-items: center; }
+.me .avatar { width: 92px; height: 112px; }
+.me .avatar svg { width: 100%; height: 100%; overflow: visible; }
+.me h2 { margin: 0; font: 700 22px var(--display); }
+.tier { display: inline-block; font: 600 12px var(--display); letter-spacing: .05em; padding: 2px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 520px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { background: var(--night-2); border-radius: 10px; padding: 7px 9px; }
+.kpi b { display: block; font: 600 16px var(--mono); }
+.kpi span { font-size: 11px; color: var(--muted); }
+.meter { height: 8px; background: var(--night-2); border-radius: 99px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--bad), var(--warn), var(--good)); transition: width .4s; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rolls { display: flex; gap: 3px; }
+.rolls i { width: 12px; height: 12px; border-radius: 3px; background: var(--night-2); border: 1px solid var(--line); }
+.rolls i.on { background: var(--gold); border-color: var(--gold); }
+.card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+.card h3 { margin: 0; font: 600 16px var(--display); }
+.card p { margin: 0; color: var(--muted); font-size: 13px; }
+.land { border-color: var(--gold); }
+.list { display: grid; gap: 6px; }
+.li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 10px; align-items: center; background: var(--night-2); border-radius: 10px; padding: 7px 9px; }
+.li .sw { width: 8px; align-self: stretch; border-radius: 4px; }
+.li .t { font-weight: 700; font-size: 13.5px; }
+.li .s { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.empty { color: var(--muted); font-size: 13px; border: 1px dashed var(--line); border-radius: 10px; padding: 10px; }
+.npc { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: start; }
+.npc .face { width: 56px; height: 56px; border-radius: 14px; background: var(--night-2); display: grid; place-items: center; font-size: 30px; }
+.bubble { background: var(--night-2); border-radius: 4px 12px 12px 12px; padding: 8px 10px; font-size: 13.5px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font: 600 11px var(--body); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); padding: 5px 6px; border-bottom: 1px solid var(--line); }
+td { padding: 6px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+td.n { text-align: right; font-family: var(--mono); }
+.hb { height: 7px; width: 70px; background: var(--night-2); border-radius: 99px; overflow: hidden; display: inline-block; vertical-align: middle; }
+.hb i { display: block; height: 100%; }
+.pill { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+.pill.bad { background: rgba(255,123,107,.18); color: var(--bad); } .pill.warn { background: rgba(255,200,87,.16); color: var(--warn); } .pill.ok { background: rgba(95,211,154,.15); color: var(--good); }
+.check { font: 11.5px var(--mono); color: var(--muted); }
+
+/* Chat */
+.chat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 340px; overflow: hidden; }
+@media (max-width: 720px) { .chat { grid-template-columns: minmax(0, 1fr); } .rooms { display: flex !important; overflow-x: auto; border-right: none !important; border-bottom: 1px solid var(--line); } .rooms button { flex: none; } }
+.rooms { border-right: 1px solid var(--line); padding: 8px; display: grid; gap: 4px; align-content: start; }
+.rooms .rh { font: 600 11px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 6px 6px 2px; }
+.rooms button { display: flex; align-items: center; gap: 8px; text-align: left; background: transparent; border-color: transparent; }
+.rooms button[aria-selected="true"] { background: var(--panel-2); border-color: var(--line); }
+.rooms button svg { width: 22px; height: 26px; flex: none; }
+.rooms .unread { margin-left: auto; background: var(--bad); color: #fff; font: 700 10px var(--mono); border-radius: 99px; padding: 1px 6px; }
+.room { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; }
+.roomhead { padding: 10px 14px; border-bottom: 1px solid var(--line); font: 600 15px var(--display); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.roomhead span { font: 12px var(--body); color: var(--muted); }
+.msgs { padding: 10px 14px; overflow-y: auto; max-height: 300px; display: grid; gap: 8px; align-content: start; }
+.msg { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; }
+.msg svg { width: 26px; height: 30px; }
+.msg .who { font-weight: 700; font-size: 12.5px; }
+.msg .who time { font: 11px var(--mono); color: var(--muted); margin-left: 6px; font-weight: 400; }
+.msg .txt { font-size: 13.5px; }
+.msg.sys { grid-template-columns: minmax(0, 1fr); text-align: center; color: var(--muted); font-size: 12.5px; }
+.msg.me .who { color: var(--you); }
+.offer { margin-top: 5px; border: 1px solid var(--gold); background: rgba(244,183,58,.08); border-radius: 10px; padding: 8px 10px; display: grid; gap: 6px; }
+.offer .ot { font: 600 13px var(--display); color: var(--gold); }
+.offer .st { font-size: 12px; font-weight: 700; }
+.composer { border-top: 1px solid var(--line); padding: 10px 14px; display: grid; gap: 8px; }
+.composer .row input[type=text] { flex: 1; min-width: 140px; }
+.composer .row input[type=number] { width: 76px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--gold); padding: 9px 16px; border-radius: 12px; z-index: 60; font-weight: 700; max-width: calc(100% - 32px); transition: opacity .3s; }
+.gameover { background: rgba(255,123,107,.12); border: 1px solid var(--bad); border-radius: 12px; padding: 12px; }
+
+@media (max-width: 560px) {
+  .tile .nm { font-size: 7.5px; } .tile .px { font-size: 7px; } .tile.special { font-size: 8.5px; } .tile.special .ic { font-size: 13px; } .tile.special small { display: none; }
+  .die { width: 26px; height: 26px; font-size: 13px; }
+  .bld b { width: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .piece, .bld b, .coin { transition: none !important; } .die.roll, .piece.hop svg, .stamp { animation: none !important; } }
+</style>
+
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <h1>Chog <span>City</span></h1>
+      <p>The Landlord's Game, live on Monad. Your Chog is your pawn, your wallet and your collateral.</p>
+    </div>
+    <div class="clock">
+      <span class="practice">Practice City · play money</span>
+      <span class="timechip" id="clock">Day 1 · 09:00</span>
+      <button class="primary" id="btnRoll" type="button">Roll</button>
+      <button id="btnHour" type="button">+1 hour</button>
+      <button id="btnSix" type="button">+6 hours</button>
+      <button id="btnAuto" type="button" aria-pressed="false">Auto ▶</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <div class="board" id="board">
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+
+    <section class="desk" aria-label="Your desk">
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="pane" id="pane"></div>
+    </section>
+  </div>
+
+  <section class="chat" aria-label="Chat">
+    <div class="rooms" id="rooms"></div>
+    <div class="room">
+      <div class="roomhead" id="roomhead"></div>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="composer" id="composer"></div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => (Math.round(n * 10) / 10).toFixed(1);
+  const fmt0 = (n) => Math.round(n).toLocaleString("en-US");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let rng = Math.random;
+  const pick = (a) => a[Math.floor(rng() * a.length)];
+
+  // ---------- World ----------
+  const GROUPS = { ruby: { label: "Ruby Row", base: 20, c: "--g-ruby" }, amber: { label: "Amber Docks", base: 30, c: "--g-amber" }, jade: { label: "Jade Heights", base: 40, c: "--g-jade" }, violet: { label: "Violet Ridge", base: 50, c: "--g-violet" } };
+  const TILES = [
+    { t: "go", name: "Go", ic: "🏁", sub: "+10 from the Commons" },
+    { t: "st", g: "ruby", name: "Mempool Ln" }, { t: "st", g: "ruby", name: "Gas Alley" },
+    { t: "chance", name: "Chance", ic: "🎲", sub: "draw a card" },
+    { t: "st", g: "ruby", name: "Nonce St" },
+    { t: "jail", name: "Jail", ic: "🚔", sub: "lose 2 rolls" },
+    { t: "st", g: "amber", name: "Block Wharf" },
+    { t: "bank", name: "Bank", ic: "🏦", sub: "the Banker" },
+    { t: "st", g: "amber", name: "Hash Quay" }, { t: "st", g: "amber", name: "Merkle Pier" },
+    { t: "pawn", name: "Pawnshop", ic: "💍", sub: "Uncle Chog" },
+    { t: "st", g: "jade", name: "Validator Ave" }, { t: "st", g: "jade", name: "Epoch Sq" },
+    { t: "chance", name: "Chance", ic: "🎲", sub: "draw a card" },
+    { t: "st", g: "jade", name: "Consensus Ct" },
+    { t: "auction", name: "Auction House", ic: "🔨", sub: "liquidations" },
+    { t: "st", g: "violet", name: "Monad Blvd" }, { t: "st", g: "violet", name: "Parallel Pkwy" },
+    { t: "tax", name: "Commons Tax", ic: "🏛", sub: "5% of cash" },
+    { t: "st", g: "violet", name: "Purple Hill" },
+  ];
+  const POS = [];
+  for (let i = 0; i <= 5; i++) POS.push([6, 6 - i]);
+  for (let i = 1; i <= 5; i++) POS.push([6 - i, 1]);
+  for (let i = 1; i <= 5; i++) POS.push([1, 1 + i]);
+  for (let i = 1; i <= 4; i++) POS.push([1 + i, 6]);
+  const W = [1.25, 1, 1, 1, 1, 1.25], WS = 6.5;
+  const centerPct = (k) => { let s = 0; for (let i = 0; i < k - 1; i++) s += W[i]; return ((s + W[k - 1] / 2) / WS) * 97.2 + 1.4; };
+
+  const STYLES = {
+    landlord: { label: "Landlord", act: .8, buyAt: 120, buyN: 2 },
+    leverage: { label: "Leverage Lord", act: .9, buyAt: 40, buyN: 3 },
+    banker: { label: "Banker", act: .5, buyAt: 220, buyN: 1 },
+    vulture: { label: "Vulture", act: .75, buyAt: 160, buyN: 1 },
+    degen: { label: "Degen", act: .95, buyAt: 30, buyN: 3 },
+  };
+  const ROSTER = [
+    { name: "Chog #1024", style: "you", c: "--p1", trait: "Laser eyes" },
+    { name: "Chog #88", style: "landlord", c: "--p2", trait: "Gold horns" },
+    { name: "Chog #412", style: "vulture", c: "--p3", trait: "Shades" },
+    { name: "Chog #2088", style: "leverage", c: "--p4", trait: "Hoodie" },
+    { name: "Chog #777", style: "degen", c: "--p5", trait: "Party hat" },
+    { name: "Chog #3141", style: "banker", c: "--p6", trait: "Bow tie" },
+    { name: "Chog #1337", style: "landlord", c: "--p7", trait: "Scarf" },
+    { name: "Chog #5150", style: "leverage", c: "--p8", trait: "Bandana" },
+  ];
+  const START_CASH = 300, BANK_SEED = 2000, APPRAISAL = 300, RATE = 0.0025, SEASON_H = 168;
+
+  // ---------- Chog art ----------
+  function chogSVG(c, tier, opts = {}) {
+    const col = `var(${c})`;
+    const acc = {
+      broke: `<path d="M8 30 h24 l-2 20 h-20 z" fill="#8a5a2b" stroke="#4a2c10" stroke-width="1.5"/><path d="M8 36 h24 M9 44 h22" stroke="#4a2c10" stroke-width="1.5"/><path d="M12 30 l-2 -6 M28 30 l2 -6" stroke="#4a2c10" stroke-width="2"/>`,
+      renter: `<path d="M9 13 q11 -8 22 0 l3 2 h-28 z" fill="#5d6b74"/><rect x="6" y="14" width="22" height="3" rx="1.5" fill="#46525a"/>`,
+      landlord: `<rect x="12" y="-2" width="16" height="13" rx="1.5" fill="#1d1d24"/><rect x="12" y="7" width="16" height="2.5" fill="#c0392b"/><rect x="8" y="10" width="24" height="3" rx="1.5" fill="#1d1d24"/><circle cx="26" cy="23" r="4" fill="none" stroke="#f4b73a" stroke-width="1.5"/><path d="M30 24 q2 6 0 10" stroke="#f4b73a" stroke-width="1" fill="none"/>`,
+      tycoon: `<rect x="12" y="-2" width="16" height="13" rx="1.5" fill="#1d1d24"/><rect x="12" y="7" width="16" height="2.5" fill="#f4b73a"/><rect x="8" y="10" width="24" height="3" rx="1.5" fill="#1d1d24"/><path d="M11 37 q9 7 18 0" stroke="#f4b73a" stroke-width="2.5" fill="none" stroke-dasharray="2 1.5"/><rect x="29" y="30" width="9" height="2.5" rx="1" fill="#e9d8b5"/><circle cx="39" cy="31" r="1.3" fill="#ff7b3a"/>`,
+      magnate: `<path d="M10 12 l3 -11 l4 7 l3 -9 l3 9 l4 -7 l3 11 z" fill="#f4b73a" stroke="#a8700c" stroke-width="1"/><circle cx="20" cy="4" r="1.6" fill="#ff5d73"/><path d="M11 37 q9 7 18 0" stroke="#f4b73a" stroke-width="2.5" fill="none" stroke-dasharray="2 1.5"/>`,
+    }[tier] || "";
+    const aura = tier === "magnate" ? `<ellipse cx="20" cy="30" rx="21" ry="23" fill="none" stroke="#f4b73a" stroke-width="1.2" opacity=".7"/>` : "";
+    const ring = opts.ring ? `<ellipse cx="20" cy="50" rx="13" ry="3.2" fill="none" stroke="#fff" stroke-width="1.6" opacity=".9"/>` : `<ellipse cx="20" cy="50" rx="12" ry="3" fill="rgba(0,0,0,.25)"/>`;
+    return `<svg viewBox="0 -4 40 56" aria-hidden="true">${ring}${aura}
+      <path d="M9 20 L11 7 L17 15 Z" fill="${col}"/><path d="M31 20 L29 7 L23 15 Z" fill="${col}"/>
+      <ellipse cx="20" cy="31" rx="14" ry="15" fill="${col}"/>
+      <ellipse cx="20" cy="38" rx="8" ry="6" fill="#fff" opacity=".18"/>
+      <circle cx="15" cy="27" r="3.4" fill="#fff"/><circle cx="25" cy="27" r="3.4" fill="#fff"/>
+      <circle cx="15.8" cy="27.6" r="1.7" fill="#1b1b22"/><circle cx="25.8" cy="27.6" r="1.7" fill="#1b1b22"/>
+      <path d="M17 34 q3 2.5 6 0" stroke="#1b1b22" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      ${acc}</svg>`;
+  }
+
+  // ---------- State ----------
+  let S, autoTimer = null, tab = "me", room = "hall", landing = null;
+
+  function newGame() {
+    S = {
+      hour: 9, season: 1, commons: 0, last: [0, 0],
+      players: ROSTER.map((r, i) => ({ id: i, name: r.name, style: r.style, c: r.c, trait: r.trait, you: i === 0, cash: START_CASH, pos: 0, rolls: 3, hustle: 1, idle: 0, acted: false, lastTend: 9, jail: false, debt: 0, pawned: false, hasChog: true, extraChogs: [], liquidating: false })),
+      st: TILES.map(t => t.t === "st" ? { S: 0, L: 0, h: {} } : null),
+      bank: { avail: BANK_SEED, dep: { npc: BANK_SEED }, tot: BANK_SEED },
+      lots: [], hall: [], dms: {}, unread: {}, nextLot: 1, nextOffer: 1, total: ROSTER.length * START_CASH + BANK_SEED, fresh: 0, warned: false,
+    };
+    ROSTER.forEach((r, i) => { if (i) { S.dms[i] = []; S.unread[i] = 0; } });
+    landing = null;
+    // Seed: a few shares already held so the city opens alive.
+    const seed = [[1, 1, 2], [2, 6, 2], [3, 11, 3], [4, 16, 1], [6, 8, 2], [7, 19, 2], [3, 17, 2], [1, 2, 1]];
+    seed.forEach(([p, t, n]) => buy(S.players[p], t, n, true));
+    S.players[3].debt = 0; borrow(S.players[3], 60, true);
+    deposit(S.players[5], 120, true);
+    S.players.forEach((p, i) => { p.pos = [0, 4, 9, 12, 16, 2, 7, 14][i]; });
+    sys("Season 1 opens. Market bell at 12:00 UTC every day. Rolls refill 1 per hour, up to 8.");
+    say(2, "hall", "Morning, landlords. Watching the Danger Board as usual 👀");
+    say(4, "hall", "just bought Monad Blvd at the top, wish me luck 🫡");
+    dm(1, "Welcome to the city. When you want shares on Ruby Row, talk to me before you hit the curve. I pay fair.");
+    buildBoard(); renderAll();
+  }
+
+  const P = (i) => S.players[i];
+  const me = () => S.players[0];
+  const base = (i) => GROUPS[TILES[i].g].base;
+  const buyPx = (i) => base(i) * (1 + S.st[i].S / 10);
+  const sellPx = (i) => S.st[i].S > 0 ? base(i) * (1 + (S.st[i].S - 1) / 10) : 0;
+  const rentOf = (i) => base(i) * 0.5 * (1 + S.st[i].S / 4);
+  const level = (i) => { const n = S.st[i].S; return n === 0 ? 0 : n <= 2 ? 1 : n <= 5 ? 2 : n <= 9 ? 3 : 4; };
+  const held = (p, i) => (S.st[i] && S.st[i].h[p.id]) || 0;
+  const shareValue = (p) => S.st.reduce((a, s, i) => a + (s ? held(p, i) * sellPx(i) : 0), 0);
+  const limit = (p) => 0.5 * shareValue(p) + (p.pawned ? 0.3 * APPRAISAL : 0);
+  const liqLine = (p) => 0.8 * shareValue(p) + (p.pawned ? 0.48 * APPRAISAL : 0);
+  const health = (p) => p.debt <= 0 ? Infinity : liqLine(p) / p.debt;
+  const worth = (p) => p.cash + shareValue(p) - p.debt + (p.hasChog ? 0 : 0) + p.extraChogs.length * APPRAISAL;
+  const tended = (p) => S.hour - p.lastTend < 24;
+  const eff = (p) => p.hustle * (tended(p) ? 1 : 0.7);
+  const poolValue = () => S.bank.avail + S.players.reduce((a, p) => a + p.debt, 0);
+  const myDeposit = (p) => S.bank.tot ? (S.bank.dep[p.id] || 0) * poolValue() / S.bank.tot : 0;
+  const ranked = () => [...S.players].sort((a, b) => worth(b) - worth(a));
+  function tier(p) {
+    if (!p.hasChog || worth(p) < 120) return "broke";
+    const r = ranked();
+    if (r[0] === p && worth(p) > 420) return "magnate";
+    const w = worth(p);
+    return w < 330 ? "renter" : w < 520 ? "landlord" : "tycoon";
+  }
+  const TIER_LABEL = { broke: "Broke", renter: "Renter", landlord: "Landlord", tycoon: "Tycoon", magnate: "Magnate" };
+  const nameOf = (p) => p.you ? "You" : p.name;
+
+  // ---------- Money ops ----------
+  function buy(p, i, n, silent) {
+    let k = 0;
+    for (; k < n; k++) {
+      const c = buyPx(i); if (p.cash < c) break;
+      p.cash -= c; S.st[i].L += c; S.st[i].S++; S.st[i].h[p.id] = (S.st[i].h[p.id] || 0) + 1;
+    }
+    if (k && !silent) { if (p.you) act(); }
+    return k;
+  }
+  function sell(p, i, n, spread = true) {
+    let k = 0, got = 0;
+    for (; k < n && held(p, i) > 0; k++) {
+      const v = sellPx(i); S.st[i].L -= v; S.st[i].S--; S.st[i].h[p.id]--;
+      if (!S.st[i].h[p.id]) delete S.st[i].h[p.id];
+      p.cash += v * (spread ? .98 : 1); S.commons += spread ? v * .02 : 0; got += v * (spread ? .98 : 1);
+    }
+    return got;
+  }
+  function borrow(p, x, silent) {
+    x = Math.min(x, Math.max(0, limit(p) - p.debt), S.bank.avail);
+    if (x <= 0.01) return 0;
+    S.bank.avail -= x; p.cash += x; p.debt += x;
+    if (!silent && p.you) act();
+    return x;
+  }
+  function repay(p, x) { x = Math.min(x, p.cash, p.debt); if (x <= 0) return 0; p.cash -= x; p.debt -= x; S.bank.avail += x; if (p.debt < 0.01) p.debt = 0; return x; }
+  // Wall Street rule: nobody wants to go broke, so anyone can add fresh money from their own wallet.
+  // A top-up during a margin call goes straight to paying down debt.
+  function topUp(p, x) {
+    p.cash += x; S.total += x; S.fresh += x;
+    if (p.debt > 0 && health(p) < 1.25) repay(p, Math.min(x, p.debt));
+    return x;
+  }
+  function deposit(p, x) { x = Math.min(x, p.cash); if (x <= 0) return 0; const sh = S.bank.tot ? x * S.bank.tot / poolValue() : x; p.cash -= x; S.bank.avail += x; S.bank.dep[p.id] = (S.bank.dep[p.id] || 0) + sh; S.bank.tot += sh; return x; }
+  function withdraw(p, x) {
+    const have = myDeposit(p); x = Math.min(x, have, S.bank.avail); if (x <= 0) return 0;
+    const sh = x * S.bank.tot / poolValue(); S.bank.dep[p.id] -= sh; S.bank.tot -= sh; S.bank.avail -= x; p.cash += x; return x;
+  }
+
+  function payRent(payer, i) {
+    const st = S.st[i]; let due = rentOf(i);
+    if (payer.cash < due) {
+      // Foreclosure: sell the payer's cheapest shares into the curve to cover rent.
+      const mine = S.st.map((s, j) => s && held(payer, j) ? j : -1).filter(j => j >= 0).sort((a, b) => sellPx(a) - sellPx(b));
+      for (const j of mine) { while (payer.cash < due && held(payer, j)) sell(payer, j, 1); if (payer.cash >= due) break; }
+      if (mine.length) { if (payer.you) stamp("FORECLOSED", "var(--bad)"); sys(`${nameOf(payer)} sold shares to cover rent on ${TILES[i].name}.`); }
+    }
+    const amt = Math.min(due, payer.cash); if (amt <= 0) return 0;
+    payer.cash -= amt;
+    if (st.S === 0) { S.commons += amt; return amt; }
+    const paid = [];
+    for (const [pid, n] of Object.entries(st.h)) {
+      const q = P(+pid), part = amt * n / st.S, e = eff(q);
+      q.cash += part * e; S.commons += part * (1 - e);
+      if (q !== payer) paid.push(q);
+    }
+    flyCoins(payer, paid);
+    return amt;
+  }
+
+  // ---------- Turn logic ----------
+  function act() { const p = me(); p.acted = true; p.idle = 0; p.hustle = Math.min(1, p.hustle + 0.08); }
+
+  function move(p, steps, done) {
+    const path = []; for (let k = 1; k <= steps; k++) path.push((p.pos + k) % TILES.length);
+    const passGo = p.pos + steps >= TILES.length;
+    const el = pieces[p.id];
+    const step = () => {
+      if (!path.length) { done(passGo); return; }
+      p.pos = path.shift(); placePiece(p);
+      if (el && !reduce) { el.classList.remove("hop"); void el.offsetWidth; el.classList.add("hop"); }
+      setTimeout(step, reduce ? 0 : 120);
+    };
+    if (reduce) { p.pos = (p.pos + steps) % TILES.length; placePiece(p); done(passGo); } else step();
+  }
+
+  function resolve(p, passGo) {
+    if (passGo) { const s = Math.min(10, S.commons); S.commons -= s; p.cash += s; }
+    const i = p.pos, t = TILES[i];
+    flashTile(i);
+    if (t.t === "st") {
+      const st = S.st[i], others = Object.keys(st.h).filter(k => +k !== p.id);
+      if (others.length || (st.S && !st.h[p.id])) {
+        const amt = payRent(p, i);
+        if (amt > 0 && (p.you || others.includes("0"))) { if (p.you) stamp("RENT!", "var(--gold)"); }
+        if (p.you) sys(`You paid ${fmt(amt)} rent on ${t.name}.`);
+        else if (amt > 25 && rng() < .5) say(p.id, "hall", pick([`ouch, ${fmt0(amt)} on ${t.name}`, `${t.name} is a toll road now 😤`, `paid ${fmt0(amt)} rent. landlords eating good`]));
+        if (others.includes("0") && !p.you && amt > 0) {
+          const myCut = amt * held(me(), i) / Math.max(1, st.S) * eff(me());
+          sys(`${p.name} paid rent on ${t.name}. Your cut: ${fmt(myCut)}${me().hustle < 1 ? ` (Hustle ${Math.round(me().hustle * 100)}%)` : ""}.`);
+        }
+      }
+      if (p.you) { landing = i; tab = "me"; }
+      else botBuy(p, i);
+    } else if (t.t === "chance") {
+      const r = rng();
+      let msg;
+      if (r < .3) { const g = Math.min(25, S.commons); S.commons -= g; p.cash += g; msg = `Bank error in your favour: +${fmt(g)}`; }
+      else if (r < .55) { const x = Math.min(15, p.cash); p.cash -= x; S.commons += x; msg = `Street repairs: −${fmt(x)} to the Commons`; }
+      else if (r < .8) { p.rolls = Math.min(8, p.rolls + 2); msg = "Lucky break: +2 rolls"; }
+      else { p.hustle = Math.min(1, p.hustle + .2); msg = "Town hall speech: +20% Hustle"; }
+      if (p.you) { sys(`Chance: ${msg}.`); toast(`🎲 ${msg}`); }
+    } else if (t.t === "jail") {
+      p.rolls = Math.max(0, p.rolls - 2);
+      if (p.you) { sys("You landed in Jail and lost 2 rolls."); toast("🚔 Jail: −2 rolls"); } else if (rng() < .4) say(p.id, "hall", "jail again. free me 😭");
+    } else if (t.t === "tax") {
+      const x = p.cash * .05; p.cash -= x; S.commons += x; if (p.you) sys(`Commons Tax: you paid ${fmt(x)}.`);
+    } else if (t.t === "bank") { if (p.you) { tab = "bank"; toast("🏦 The Banker will see you now"); } }
+    else if (t.t === "pawn") { if (p.you) { tab = "pawn"; toast("💍 Uncle Chog is open for business"); } }
+    else if (t.t === "auction") { if (p.you) { tab = "auction"; } }
+  }
+
+  function rollYou() {
+    const p = me();
+    if (!p.hasChog || p.rolls < 1 || busy) return;
+    busy = true; p.rolls--; act(); landing = null;
+    const a = 1 + Math.floor(rng() * 6), b = 1 + Math.floor(rng() * 6); S.last = [a, b];
+    renderAll(true);
+    move(p, a + b, (pg) => { resolve(p, pg); busy = false; renderAll(); });
+  }
+  let busy = false;
+
+  function botBuy(p, i) {
+    const s = STYLES[p.style]; if (!s) return;
+    if (p.cash < s.buyAt) return;
+    const n = 1 + Math.floor(rng() * s.buyN);
+    const k = buy(p, i, n, true);
+    if (k && rng() < .35) say(p.id, "hall", pick([`grabbed ${k} of ${TILES[i].name}`, `${TILES[i].name} looking cheap, took ${k} 🏗️`, `more ${GROUPS[TILES[i].g].label} for the empire`]));
+  }
+
+  function botHour(p) {
+    if (!p.hasChog) return;
+    const s = STYLES[p.style];
+    // Loans and deposits by personality
+    if (p.style === "leverage" && p.cash < 80) { const x = borrow(p, (limit(p) - p.debt) * .9); if (x > 20 && rng() < .3) say(p.id, "hall", "Uncle Chog, top me up 💸"); }
+    if (p.style === "leverage" && p.cash > 280) repay(p, p.cash - 200);
+    if (p.style !== "leverage" && p.debt > 0 && p.cash > 150) repay(p, p.cash - 120);
+    if (p.style === "banker" && p.cash > 150) deposit(p, p.cash - 100);
+    if (rng() < .9 && S.hour - p.lastTend >= 22) p.lastTend = S.hour;
+    // Auctions
+    for (const lot of S.lots) {
+      if (lot.from === p.id || lot.sold) continue;
+      const keen = p.style === "vulture" ? .95 : .75;
+      if (lot.price <= lot.fair * keen && p.cash >= lot.price) { settleLot(lot, p); break; }
+    }
+    // Roll
+    if (p.rolls > 0 && rng() < s.act) {
+      p.rolls--;
+      const steps = 2 + Math.floor(rng() * 6) + Math.floor(rng() * 6);
+      const pg = p.pos + steps >= TILES.length;
+      p.pos = (p.pos + steps) % TILES.length;
+      resolve(p, pg);
+    }
+  }
+
+  function liquidate(p) {
+    const lotShares = {};
+    S.st.forEach((s, i) => { if (s && s.h[p.id]) { lotShares[i] = s.h[p.id]; } });
+    // Escrow: shares move to the auction (holder id -1 earns nothing; its rent goes to the Commons).
+    for (const [i, n] of Object.entries(lotShares)) { const s = S.st[i]; delete s.h[p.id]; s.h[-1] = (s.h[-1] || 0) + n; }
+    const fair = Object.entries(lotShares).reduce((a, [i, n]) => a + n * sellPx(+i), 0) + (p.pawned ? APPRAISAL : 0);
+    const lot = { id: S.nextLot++, from: p.id, shares: lotShares, nft: p.pawned, debt: p.debt, fair, price: Math.max(20, fair * 1.1), floor: fair * .4, sold: false, opened: S.hour };
+    S.lots.push(lot);
+    p.liquidating = true;
+    sys(`💥 ${nameOf(p)} got liquidated. ${Object.values(lotShares).reduce((a, b) => a + b, 0)} shares${p.pawned ? " and the Chog NFT itself" : ""} go to the Auction House.`);
+    if (p.you) { stamp("LIQUIDATED", "var(--bad)"); toast("💥 You were liquidated. Your empire is at auction."); }
+    else say(2, "hall", pick([`rest in peace ${p.name}'s empire 🪦`, `${p.name} just got margin-called. lot #${lot.id} is mine`, `vulture hours 🦅 lot #${lot.id}`]));
+  }
+
+  function settleLot(lot, buyer, protocol) {
+    const from = P(lot.from);
+    const price = protocol ? 0 : lot.price;
+    let proceeds = price;
+    if (!protocol) buyer.cash -= price;
+    for (const [i, n] of Object.entries(lot.shares)) {
+      const s = S.st[i]; s.h[-1] -= n; if (!s.h[-1]) delete s.h[-1];
+      if (protocol) { // sell into the curve
+        for (let k = 0; k < n; k++) { const v = sellPx(+i); s.L -= v; s.S--; proceeds += v; }
+      } else s.h[buyer.id] = (s.h[buyer.id] || 0) + n;
+    }
+    const rep = Math.min(proceeds, from.debt); S.bank.avail += rep; proceeds -= rep;
+    from.debt = 0; // any shortfall is bad debt for the Bank
+    from.cash += proceeds; from.liquidating = false;
+    if (lot.nft) {
+      from.hasChog = false; from.pawned = false;
+      if (!protocol) buyer.extraChogs.push(from.name);
+    }
+    lot.sold = true;
+    S.lots = S.lots.filter(l => !l.sold);
+    if (protocol) sys(`Lot #${lot.id} found no buyer. The Bank sold the shares into the curve.`);
+    else {
+      sys(`🔨 Lot #${lot.id} sold to ${nameOf(buyer)} for ${fmt(price)}.${lot.nft ? ` ${from.you ? "Your Chog" : from.name} now belongs to ${nameOf(buyer)}.` : ""}`);
+      if (buyer.you) act();
+    }
+  }
+
+  function advanceHour() {
+    if (busy) return;
+    S.hour++;
+    const p0 = me();
+    if (!p0.acted) { p0.idle++; if (p0.idle > 3) p0.hustle = Math.max(.5, p0.hustle - .03); }
+    p0.acted = false;
+    S.players.forEach(p => { if (p.hasChog) p.rolls = Math.min(8, p.rolls + 1); });
+    S.players.forEach(p => { p.debt *= p.debt > 0 ? (1 + RATE) : 1; });
+    S.players.filter(p => !p.you).forEach(botHour);
+    S.players.filter(p => !p.you && p.style === "leverage" && p.debt > 1 && health(p) < 1.12 && rng() < .5).forEach(p => { topUp(p, 80); say(p.id, "hall", pick(["margin call? topped up 80. not today, Uncle Chog", "added fresh CHOG from my wallet. still standing 💪", "wired in 80 more. the empire lives"])); });
+    S.players.forEach(p => { if (p.debt > 1 && !p.liquidating && health(p) < 1) liquidate(p); });
+    if (p0.debt > 0 && !p0.liquidating && health(p0) < 1.2 && !S.warned) { S.warned = true; sys(`📣 Margin call: your health is ${health(p0).toFixed(2)}. Top up from your wallet or repay, or Uncle Chog sells your empire.`); toast("📣 Margin call! Top up or repay"); tab = "me"; }
+    if (health(p0) > 1.3) S.warned = false;
+    // Auctions drop 8% an hour, then the protocol sells.
+    for (const lot of [...S.lots]) { lot.price *= .92; if (lot.price <= lot.floor) settleLot(lot, null, true); }
+    const hod = S.hour % 24;
+    if (hod === 12) { sys("🔔 Market bell. Rolls refilled faster today for anyone who shows up."); S.players.forEach(p => { if (p.hasChog) p.rolls = Math.min(8, p.rolls + 1); }); }
+    if (rng() < .22) banter();
+    if (rng() < .12) botOffer();
+    if (S.hour - 9 >= SEASON_H * S.season) seasonEnd();
+    renderAll();
+  }
+
+  function seasonEnd() {
+    const pot = S.commons, half = pot / 2, r = ranked(), shares = [.5, .3, .2];
+    r.slice(0, 3).forEach((p, k) => p.cash += half * shares[k]);
+    const alive = S.players.filter(p => p.hasChog);
+    alive.forEach(p => p.cash += half / alive.length);
+    S.commons = 0;
+    sys(`🏆 Season ${S.season} closed. Commons paid ${fmt(pot)}: Monopolist prizes to ${r.slice(0, 3).map(nameOf).join(", ")}. Prosperity dividend: ${fmt(half / alive.length)} to every Chog.`);
+    S.season++;
+  }
+
+  // ---------- Chat ----------
+  const now = () => `D${Math.floor((S.hour) / 24) + 1} ${String(S.hour % 24).padStart(2, "0")}:00`;
+  function sys(text) { S.hall.push({ sys: true, text, t: now() }); trim(); }
+  function say(pid, where, text) { const m = { from: pid, text, t: now() }; if (where === "hall") S.hall.push(m); trim(); }
+  function dm(pid, text, offer) { S.dms[pid].push({ from: pid, text, t: now(), offer }); if (room !== "dm" + pid) S.unread[pid]++; }
+  function trim() { if (S.hall.length > 120) S.hall.splice(0, S.hall.length - 120); }
+  function banter() {
+    const p = P(1 + Math.floor(rng() * 7)); if (!p.hasChog) return;
+    const lines = {
+      landlord: ["rent day is every day 🏠", "Ruby Row is undervalued and I'll die on this hill", "who wants to sell me Gas Alley?"],
+      vulture: ["Danger Board looking juicy today", "if your health bar is red, my DMs are open", "patience pays. auctions pay more 🦅"],
+      leverage: ["borrowed at 6%, renting at 20%. math is math", "Uncle Chog is my best friend", "never selling, only borrowing"],
+      degen: ["full port into Purple Hill 🚀", "what is a health factor", "rolled a 12, feeling like a tycoon"],
+      banker: ["Bank yield is the real game. let them roll", "deposits up, risk down 🏦", "someone has to fund these degens"],
+    }[p.style];
+    say(p.id, "hall", pick(lines));
+  }
+  function botOffer() {
+    const m = me(); if (!m.hasChog) return;
+    const mine = S.st.map((s, i) => s && held(m, i) ? i : -1).filter(i => i >= 0);
+    if (m.debt > 0 && health(m) < 1.3 && mine.length) {
+      const i = pick(mine), n = held(m, i), px = Math.max(1, sellPx(i) * .85);
+      sendOffer(2, { kind: "buyFromYou", tile: i, qty: n, px }, `Your health is ${health(m).toFixed(2)}. I'll take all ${n} of your ${TILES[i].name} at ${fmt(px)} each, before Uncle Chog does it for less.`);
+    } else if (mine.length && rng() < .6) {
+      const i = pick(mine), n = Math.min(held(m, i), 2), px = sellPx(i) * 1.12;
+      sendOffer(pick([1, 6]), { kind: "buyFromYou", tile: i, qty: n, px }, `I'm collecting ${GROUPS[TILES[i].g].label}. ${n} shares of ${TILES[i].name} at ${fmt(px)} each? That's 12% over the curve.`);
+    } else {
+      const sellers = S.players.filter(p => !p.you && p.hasChog && S.st.some((s, i) => s && held(p, i)));
+      if (!sellers.length) return;
+      const b = pick(sellers), opts = S.st.map((s, i) => s && held(b, i) ? i : -1).filter(i => i >= 0), i = pick(opts);
+      sendOffer(b.id, { kind: "sellToYou", tile: i, qty: 1, px: sellPx(i) * 1.08 }, `Need cash. 1 share of ${TILES[i].name} for ${fmt(sellPx(i) * 1.08)}, skip the curve fee.`);
+    }
+  }
+  function sendOffer(pid, o, text) { o.id = S.nextOffer++; o.status = "open"; o.by = pid; dm(pid, text, o); }
+
+  function settleOffer(o, pid) {
+    const bot = P(pid), m = me(), i = o.tile, total = o.qty * o.px;
+    const seller = o.kind === "buyFromYou" || o.kind === "youSell" ? m : bot;
+    const buyer = seller === m ? bot : m;
+    if (held(seller, i) < o.qty) return "Seller no longer holds those shares.";
+    if (buyer.cash < total) return `${nameOf(buyer)} can't afford ${fmt(total)}.`;
+    buyer.cash -= total; seller.cash += total;
+    const s = S.st[i]; s.h[seller.id] -= o.qty; if (!s.h[seller.id]) delete s.h[seller.id]; s.h[buyer.id] = (s.h[buyer.id] || 0) + o.qty;
+    act();
+    return null;
+  }
+
+  function evalYourOffer(pid, kind, i, qty, px) {
+    const bot = P(pid), fair = sellPx(i) || buyPx(i);
+    const o = { id: S.nextOffer++, kind, tile: i, qty, px, by: 0, status: "open" };
+    S.dms[pid].push({ from: 0, text: kind === "youBuy" ? `Offer: I'll buy ${qty} of your ${TILES[i].name} at ${fmt(px)} each.` : `Offer: I'll sell you ${qty} of my ${TILES[i].name} at ${fmt(px)} each.`, t: now(), offer: o });
+    setTimeout(() => {
+      let reply;
+      if (kind === "youBuy") {
+        const need = bot.style === "vulture" ? 1.2 : (bot.style === "leverage" && bot.cash < 60) ? .98 : 1.1;
+        if (held(bot, i) < qty) { o.status = "declined"; reply = `I only hold ${held(bot, i)} of ${TILES[i].name}.`; }
+        else if (px >= fair * need) { const err = settleOffer(o, pid); o.status = err ? "failed" : "settled"; reply = err || pick(["Deal. Atomic swap done ✓", "Pleasure doing business 🤝 settled on-chain.", "Sold. Don't tell the others my price."]); }
+        else { o.status = "countered"; reply = `Too low. I'd do ${fmt(fair * need)} each.`; S.dms[pid].push({ from: pid, text: reply, t: now(), offer: { id: S.nextOffer++, kind: "sellToYou", tile: i, qty, px: fair * need, by: pid, status: "open" } }); renderChat(); renderPane(); return; }
+      } else {
+        const need = bot.style === "landlord" ? 1.15 : bot.style === "vulture" ? .9 : 1.04;
+        if (bot.cash < qty * px) { o.status = "declined"; reply = "Can't afford that right now."; }
+        else if (px <= fair * need) { const err = settleOffer(o, pid); o.status = err ? "failed" : "settled"; reply = err || pick(["Deal ✓ shares received.", "Done. Rent is mine now 😏", "Settled. Thanks for the liquidity."]); }
+        else { o.status = "countered"; reply = `I'll pay ${fmt(fair * need)} each, no more.`; S.dms[pid].push({ from: pid, text: reply, t: now(), offer: { id: S.nextOffer++, kind: "buyFromYou", tile: i, qty, px: fair * need, by: pid, status: "open" } }); renderChat(); renderPane(); return; }
+      }
+      S.dms[pid].push({ from: pid, text: reply, t: now() });
+      renderAll();
+    }, reduce ? 0 : 650);
+  }
+
+  // ---------- Board rendering ----------
+  const pieces = {};
+  function buildBoard() {
+    const g = $("grid");
+    g.innerHTML = TILES.map((t, i) => {
+      const [r, c] = POS[i];
+      if (t.t === "st") return `<div class="tile" id="t${i}" style="grid-area:${r}/${c}"><div class="band" style="background:var(${GROUPS[t.g].c})"></div><div class="nm">${t.name}</div><div class="holders"></div><div class="px"></div><div class="bld" style="--c:var(${GROUPS[t.g].c})"></div></div>`;
+      return `<div class="tile special" id="t${i}" style="grid-area:${r}/${c}"><div class="ic">${t.ic}</div><div>${t.name}</div><small>${t.sub}</small></div>`;
+    }).join("") + `<div class="center"><div class="title">Chog City</div><div class="sub" id="cSub"></div><div class="dice"><div class="die" id="d1">–</div><div class="die" id="d2">–</div></div><div class="commons" id="cCom"></div></div>`;
+    const board = $("board");
+    board.querySelectorAll(".piece").forEach(e => e.remove());
+    S.players.forEach(p => {
+      const el = document.createElement("div"); el.className = "piece" + (p.you ? " you" : ""); board.appendChild(el); pieces[p.id] = el; placePiece(p);
+    });
+  }
+  function placePiece(p) {
+    const el = pieces[p.id]; if (!el) return;
+    const [r, c] = POS[p.pos];
+    const same = S.players.filter(q => q.pos === p.pos), k = same.indexOf(p);
+    const ox = (k % 3 - 1) * 2.6, oy = Math.floor(k / 3) * 2.2;
+    el.style.left = (centerPct(c) + ox) + "%"; el.style.top = (centerPct(r) + 3 + oy) + "%";
+    el.hidden = !p.hasChog;
+  }
+  function renderBoard(rolled) {
+    TILES.forEach((t, i) => {
+      if (t.t !== "st") return;
+      const el = $("t" + i), s = S.st[i], lv = level(i);
+      const hs = Object.entries(s.h).filter(([k]) => +k >= 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
+      el.querySelector(".holders").innerHTML = hs.map(([k]) => `<i style="background:var(${P(+k).c})" title="${P(+k).name}"></i>`).join("");
+      el.querySelector(".px").textContent = `${fmt0(buyPx(i))} · r${fmt0(rentOf(i))}`;
+      const heights = [[], [8], [10, 14], [14, 20, 12], [18, 30, 24]][lv];
+      const b = el.querySelector(".bld");
+      b.innerHTML = heights.map(h => `<b style="height:${h * 1.6}px"></b>`).join("");
+      b.classList.toggle("cracked", held(me(), i) > 0 && !tended(me()));
+      el.title = `${t.name} · ${GROUPS[t.g].label} · ${s.S} shares · buy ${fmt(buyPx(i))} · rent ${fmt(rentOf(i))}`;
+    });
+    S.players.forEach(p => { if (pieces[p.id]) { pieces[p.id].innerHTML = chogSVG(p.c, tier(p), { ring: p.you }); placePiece(p); } });
+    $("d1").textContent = S.last[0] || "–"; $("d2").textContent = S.last[1] || "–";
+    if (rolled && !reduce) ["d1", "d2"].forEach(id => { const d = $(id); d.classList.remove("roll"); void d.offsetWidth; d.classList.add("roll"); });
+    $("cSub").textContent = `Season ${S.season} · ${8 - Math.floor(((S.hour - 9) % SEASON_H) / 24) - 1} days left`;
+    $("cCom").textContent = `Commons ${fmt0(S.commons)} CHOG`;
+    const hod = S.hour % 24, night = hod < 6 || hod >= 19;
+    $("board").style.filter = night ? "brightness(.82) saturate(.9)" : "none";
+  }
+  function flashTile(i) { const el = $("t" + i); if (!el) return; el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 900); }
+  function stamp(text, color) {
+    if (reduce) return;
+    const s = document.createElement("div"); s.className = "stamp"; s.textContent = text; s.style.color = color;
+    $("board").appendChild(s); setTimeout(() => s.remove(), 1350);
+  }
+  function flyCoins(from, tos) {
+    if (reduce || !tos.length) return;
+    const a = pieces[from.id]; if (!a) return;
+    const ar = a.getBoundingClientRect();
+    tos.slice(0, 4).forEach((q, k) => {
+      const b = pieces[q.id]; if (!b) return; const br = b.getBoundingClientRect();
+      for (let n = 0; n < 3; n++) {
+        const c = document.createElement("div"); c.className = "coin";
+        c.style.left = (ar.left + ar.width / 2 - 8) + "px"; c.style.top = (ar.top + ar.height / 3) + "px";
+        document.body.appendChild(c);
+        const dx = br.left - ar.left, dy = br.top - ar.top;
+        setTimeout(() => { c.style.transform = `translate(${dx}px, ${dy}px) scale(.8)`; c.style.opacity = "0"; }, 30 + n * 90 + k * 60);
+        setTimeout(() => c.remove(), 1000 + n * 90 + k * 60);
+      }
+    });
+  }
+
+  // ---------- Desk ----------
+  const TABS = [["me", "My Chog"], ["bank", "Bank"], ["pawn", "Pawnshop"], ["auction", "Auctions"], ["danger", "Danger Board"]];
+  function renderTabs() {
+    $("tabs").innerHTML = TABS.map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${tab === k}">${l}${k === "auction" && S.lots.length ? '<span class="dot"></span>' : ""}</button>`).join("");
+  }
+  function renderPane() {
+    const m = me(), t = tier(m);
+    let h = "";
+    if (!m.hasChog) h += `<div class="gameover"><b>No Chog, no seat.</b> Your Chog was sold at the Auction House. In Chog City, the NFT <em>is</em> the player. <div class="row" style="margin-top:8px"><button type="button" data-act="new">Start a new game</button></div></div>`;
+    if (tab === "me") {
+      const hv = Math.round(m.hustle * 100);
+      h += `<div class="me"><div class="avatar">${chogSVG(m.c, t, { ring: true })}</div>
+        <div><h2>${m.name}</h2><span class="tier">${TIER_LABEL[t]}</span> <span style="color:var(--muted);font-size:12px">Trait: ${m.trait}</span>
+        <div class="row" style="margin-top:8px"><span style="font-size:12px;color:var(--muted)">Rolls</span><span class="rolls">${Array.from({ length: 8 }, (_, k) => `<i class="${k < m.rolls ? "on" : ""}"></i>`).join("")}</span></div></div></div>
+        <div class="kpis">
+          <div class="kpi"><b>${fmt0(m.cash)}</b><span>Cash</span></div>
+          <div class="kpi"><b>${fmt0(shareValue(m))}</b><span>Street shares</span></div>
+          <div class="kpi"><b style="color:${m.debt ? "var(--bad)" : "inherit"}">${fmt0(m.debt)}</b><span>Debt</span></div>
+          <div class="kpi"><b>${fmt0(worth(m))}</b><span>Empire value</span></div>
+        </div>
+        <div><div class="row" style="justify-content:space-between;font-size:12.5px"><span><b>Hustle ${hv}%</b> · your share of rent you're owed</span><span style="color:var(--muted)">idle ${m.idle}h</span></div><div class="meter"><i style="width:${(hv - 50) * 2}%"></i></div></div>
+        <div class="row"><button type="button" data-act="tend" ${tended(m) ? "disabled" : ""}>${tended(m) ? "Streets tended ✓" : "Tend your streets (rent at 70%)"}</button><button type="button" data-act="top" data-n="50">Top up 50 from wallet</button></div>`;
+      const call = m.debt > 0 && health(m) < 1.25, broke = worth(m) < 120;
+      if (m.hasChog && (call || broke)) h += `<div class="card" style="border-color:var(--bad)"><h3>${call ? `📣 Margin call · health ${health(m).toFixed(2)}` : "🛢 You're nearly broke"}</h3><p>${call ? "Below 1.00 your shares go to auction" + (m.pawned ? ", and so does your Chog." : ".") + " Fresh money from your own wallet pays down the debt first." : "Rent will start eating your shares. Add fresh money to stay in the game, or ride it out and wait for the Prosperity dividend."}</p><div class="row"><button type="button" class="primary" data-act="top" data-n="100">Top up 100</button><button type="button" data-act="top" data-n="250">Top up 250</button></div></div>`;
+      if (landing !== null && TILES[landing].t === "st") {
+        const i = landing, s = S.st[i];
+        h += `<div class="card land"><h3>You're on ${TILES[i].name}</h3>
+          <p>${GROUPS[TILES[i].g].label} · ${s.S} shares out · next share ${fmt(buyPx(i))} · rent per landing ${fmt(rentOf(i))}. Buying lifts the price and the rent, and the building grows.</p>
+          <div class="row"><button type="button" data-act="buy" data-n="1">Buy 1 (${fmt0(buyPx(i))})</button><button type="button" data-act="buy" data-n="3">Buy 3</button><button type="button" data-act="pass">Pass</button></div></div>`;
+      }
+      const mine = S.st.map((s, i) => s && held(m, i) ? i : -1).filter(i => i >= 0);
+      h += `<div><div style="font:600 15px var(--display);margin-bottom:6px">Your streets</div><div class="list">${mine.length ? mine.map(i => `<div class="li"><span class="sw" style="background:var(${GROUPS[TILES[i].g].c})"></span><div><div class="t">${TILES[i].name} · ${held(m, i)}/${S.st[i].S} shares</div><div class="s">worth ${fmt(held(m, i) * sellPx(i))} · earns ${fmt(rentOf(i) * held(m, i) / S.st[i].S * eff(m))}/landing</div></div><button type="button" data-act="sell" data-i="${i}">Sell 1</button></div>`).join("") : `<div class="empty">No shares yet. Roll, land on a street, and buy in. Every share you hold earns part of the rent when anyone lands there.</div>`}</div></div>`;
+    } else if (tab === "bank") {
+      const util = poolValue() ? (1 - S.bank.avail / poolValue()) * 100 : 0;
+      h += `<div class="npc"><div class="face">🦭</div><div class="bubble"><b>The Banker:</b> Deposits earn the interest every borrower pays. Borrow against your street shares, up to half their value. Interest runs whether you're here or not.</div></div>
+        <div class="kpis"><div class="kpi"><b>${fmt0(poolValue())}</b><span>Pool value</span></div><div class="kpi"><b>${fmt0(S.bank.avail)}</b><span>Available</span></div><div class="kpi"><b>${util.toFixed(0)}%</b><span>Utilisation</span></div><div class="kpi"><b>${(RATE * 2400).toFixed(0)}%</b><span>Daily rate</span></div></div>
+        <div class="card"><h3>Fresh money in the city · ${fmt0(S.fresh)} CHOG</h3><p>Top-ups players paid from their own wallets to avoid liquidation or bankruptcy. On mainnet this is the money that keeps the economy, the Bank and the Commons growing.</p></div>
+        <div class="card"><h3>Your deposit · ${fmt(myDeposit(m))}</h3><p>Do nothing and still earn: the Banker strategy.</p><div class="row"><button type="button" data-act="dep">Deposit 50</button><button type="button" data-act="wd">Withdraw 50</button></div></div>
+        <div class="card"><h3>Mortgage · debt ${fmt(m.debt)} of ${fmt(limit(m))} limit</h3><p>Health ${health(m) === Infinity ? "∞" : health(m).toFixed(2)}. Below 1.00 you're liquidated and your shares go to auction.</p><div class="row"><button type="button" data-act="bor">Borrow 50</button><button type="button" data-act="rep">Repay 50</button></div></div>
+        <div class="check">Conservation ✓ cash ${fmt0(S.players.reduce((a, p) => a + p.cash, 0))} + streets ${fmt0(S.st.reduce((a, s) => a + (s ? s.L : 0), 0))} + bank ${fmt0(S.bank.avail)} + commons ${fmt0(S.commons)} = ${fmt0(S.players.reduce((a, p) => a + p.cash, 0) + S.st.reduce((a, s) => a + (s ? s.L : 0), 0) + S.bank.avail + S.commons)} of ${fmt0(S.total)} put in (incl. ${fmt0(S.fresh)} fresh top-ups). Nothing is minted.</div>`;
+    } else if (tab === "pawn") {
+      h += `<div class="npc"><div class="face">🤑</div><div class="bubble"><b>Uncle Chog:</b> ${m.pawned ? "Your Chog is in my safe. Keep that health above 1 or I sell it, top hat and all." : `Pledge me the Chog itself and I'll lend you up to <b>${fmt0(0.3 * APPRAISAL)}</b> more. Appraised at ${APPRAISAL} CHOG. Fall behind and it goes under the hammer, with everything inside it.`}</div></div>
+        <div class="card"><h3>${m.pawned ? "Chog pledged 🔒" : "Pawn your Chog"}</h3><p>Borrow limit now ${fmt(limit(m))} · debt ${fmt(m.debt)} · health ${health(m) === Infinity ? "∞" : health(m).toFixed(2)}</p>
+        <div class="row">${m.pawned ? `<button type="button" data-act="unpawn">Take your Chog back</button>` : `<button type="button" class="danger" data-act="pawn">Pledge Chog #1024</button>`}<button type="button" data-act="bor">Borrow 50</button><button type="button" data-act="rep">Repay 50</button></div></div>
+        <p style="color:var(--muted);font-size:12.5px;margin:0">On mainnet the NFT moves into escrow and the loan comes from the Bank pool. If you're liquidated, the Chog and its whole empire are auctioned in one lot. Practice City uses play money.</p>`;
+    } else if (tab === "auction") {
+      h += `<div class="npc"><div class="face">🔨</div><div class="bubble"><b>The Auctioneer:</b> Dutch auctions. The price drops 8% every hour until someone bites or the Bank sells into the curve. Bargains go to whoever is watching.</div></div>
+        <div class="list">${S.lots.length ? S.lots.map(l => `<div class="li"><span class="sw" style="background:var(--bad)"></span><div><div class="t">Lot #${l.id} · ${P(l.from).name}'s empire${l.nft ? " + the Chog NFT" : ""}</div><div class="s">${Object.entries(l.shares).map(([i, n]) => `${n}× ${TILES[i].name}`).join(", ") || "no shares"} · fair ${fmt0(l.fair)}</div></div><button type="button" data-act="bid" data-l="${l.id}" ${m.cash < l.price || l.from === 0 ? "disabled" : ""}>Buy ${fmt0(l.price)}</button></div>`).join("") : `<div class="empty">No lots right now. When someone's health drops below 1, their empire lands here.</div>`}</div>
+        ${m.extraChogs.length ? `<div class="card"><h3>Chogs you won</h3><p>${m.extraChogs.join(", ")}: each one carries its history.</p></div>` : ""}`;
+    } else if (tab === "danger") {
+      const rows = [...S.players].sort((a, b) => health(a) - health(b));
+      h += `<p style="margin:0;color:var(--muted)">Everyone's leverage is public. Health below 1.00 means liquidation. Vultures watch this page.</p>
+        <div class="tablewrap"><table><thead><tr><th>Chog</th><th>Style</th><th>Health</th><th class="n">Debt</th><th class="n">Empire</th></tr></thead><tbody>${rows.map(p => {
+          const hv = health(p), pct = hv === Infinity ? 100 : Math.min(100, hv / 2 * 100), col = hv < 1.15 ? "var(--bad)" : hv < 1.5 ? "var(--warn)" : "var(--good)";
+          const pill = !p.hasChog ? `<span class="pill bad">no Chog</span>` : p.liquidating ? `<span class="pill bad">at auction</span>` : hv === Infinity ? `<span class="pill ok">no debt</span>` : `<span class="hb"><i style="width:${pct}%;background:${col}"></i></span> <span class="mono">${hv.toFixed(2)}</span>`;
+          return `<tr><td>${nameOf(p)}${p.pawned ? " 🔒" : ""}</td><td>${p.you ? "You" : STYLES[p.style].label}</td><td>${pill}</td><td class="n">${fmt0(p.debt)}</td><td class="n">${fmt0(worth(p))}</td></tr>`;
+        }).join("")}</tbody></table></div>`;
+    }
+    $("pane").innerHTML = h;
+  }
+
+  // ---------- Chat rendering ----------
+  function renderChat() {
+    const rooms = [["hall", null, "City Hall"]].concat(S.players.filter(p => !p.you).map(p => ["dm" + p.id, p, p.name]));
+    $("rooms").innerHTML = `<div class="rh">Group</div>` + rooms.map(([k, p, l], idx) => `${idx === 1 ? '<div class="rh">Direct messages</div>' : ""}<button type="button" data-room="${k}" aria-selected="${room === k}">${p ? chogSVG(p.c, tier(p)) : "🏛"}<span>${l}${p ? `<br><small style="color:var(--muted)">${STYLES[p.style].label}</small>` : ""}</span>${p && S.unread[p.id] ? `<span class="unread">${S.unread[p.id]}</span>` : ""}</button>`).join("");
+    let list, head;
+    if (room === "hall") { list = S.hall; head = `City Hall <span>8 Chogs · public · every deal and liquidation is announced here</span>`; }
+    else { const pid = +room.slice(2); list = S.dms[pid]; S.unread[pid] = 0; head = `${P(pid).name} <span>${STYLES[P(pid).style].label} · offers settle as atomic swaps</span>`; }
+    $("roomhead").innerHTML = head;
+    $("msgs").innerHTML = list.map(m => {
+      if (m.sys) return `<div class="msg sys">${m.text} <span class="mono" style="opacity:.6">${m.t}</span></div>`;
+      const p = P(m.from);
+      const offer = m.offer ? offerCard(m.offer, m.from) : "";
+      return `<div class="msg ${p.you ? "me" : ""}">${chogSVG(p.c, tier(p))}<div><div class="who">${nameOf(p)}<time>${m.t}</time></div><div class="txt">${esc(m.text)}</div>${offer}</div></div>`;
+    }).join("");
+    const box = $("msgs"); box.scrollTop = box.scrollHeight;
+    // Composer
+    if (room === "hall") {
+      $("composer").innerHTML = `<form class="row" id="hallForm"><input type="text" id="hallText" maxlength="160" placeholder="Talk to the city…" aria-label="Message City Hall"><button type="submit">Send</button></form>`;
+    } else {
+      const pid = +room.slice(2), bot = P(pid), m = me();
+      const theirs = S.st.map((s, i) => s && held(bot, i) ? i : -1).filter(i => i >= 0);
+      const mine = S.st.map((s, i) => s && held(m, i) ? i : -1).filter(i => i >= 0);
+      $("composer").innerHTML = `<form class="row" id="offerForm">
+        <select id="oKind" aria-label="Offer type"><option value="youBuy">Buy their shares</option><option value="youSell">Sell my shares</option></select>
+        <select id="oTile" aria-label="Street"></select>
+        <input type="number" id="oQty" min="1" max="20" value="1" aria-label="Quantity">
+        <input type="number" id="oPx" min="1" step="1" aria-label="Price per share">
+        <button type="submit">Send offer</button></form>
+        <div style="font-size:12px;color:var(--muted)">They hold: ${theirs.map(i => `${held(bot, i)}× ${TILES[i].name}`).join(", ") || "nothing"} · cash ${fmt0(bot.cash)}. You hold: ${mine.map(i => `${held(m, i)}× ${TILES[i].name}`).join(", ") || "nothing"}.</div>`;
+      const fill = () => {
+        const kind = $("oKind").value, opts = kind === "youBuy" ? theirs : mine;
+        $("oTile").innerHTML = opts.length ? opts.map(i => `<option value="${i}">${TILES[i].name}</option>`).join("") : `<option value="">(none)</option>`;
+        const i = +$("oTile").value; $("oPx").value = isNaN(i) || $("oTile").value === "" ? "" : Math.round(sellPx(i) * (kind === "youBuy" ? 1.1 : 1.0));
+      };
+      fill();
+      $("oKind").addEventListener("change", fill);
+      $("oTile").addEventListener("change", () => { const i = +$("oTile").value; $("oPx").value = Math.round(sellPx(i) * ($("oKind").value === "youBuy" ? 1.1 : 1)); });
+    }
+  }
+  function offerCard(o, from) {
+    const label = { buyFromYou: `Wants to buy ${o.qty}× ${TILES[o.tile].name} from you`, sellToYou: `Offers you ${o.qty}× ${TILES[o.tile].name}`, youBuy: `You buy ${o.qty}× ${TILES[o.tile].name}`, youSell: `You sell ${o.qty}× ${TILES[o.tile].name}` }[o.kind];
+    const can = o.status === "open" && from !== 0;
+    const st = { open: from === 0 ? "Waiting for reply…" : "Open", settled: "✓ Settled on-chain", declined: "Declined", countered: "Countered", failed: "Failed" }[o.status];
+    return `<div class="offer"><div class="ot">${label} @ ${fmt(o.px)} each · ${fmt(o.px * o.qty)} total</div><div class="row"><span class="st">${st}</span>${can ? `<button type="button" data-offer="${o.id}" data-from="${from}" data-yes="1">Accept</button><button type="button" data-offer="${o.id}" data-from="${from}" data-yes="0">Decline</button>` : ""}</div></div>`;
+  }
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function renderAll(rolled) {
+    const hod = S.hour % 24;
+    $("clock").textContent = `Day ${Math.floor(S.hour / 24) + 1} · ${String(hod).padStart(2, "0")}:00 ${hod < 6 || hod >= 19 ? "🌙" : "☀️"}`;
+    $("btnRoll").disabled = !me().hasChog || me().rolls < 1 || busy;
+    $("btnRoll").textContent = `Roll (${me().rolls})`;
+    renderBoard(rolled); renderTabs(); renderPane(); renderChat();
+  }
+  let toastT;
+  function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 2200); }
+
+  // ---------- Events ----------
+  $("btnRoll").addEventListener("click", rollYou);
+  $("btnHour").addEventListener("click", () => advanceHour());
+  $("btnSix").addEventListener("click", () => { for (let k = 0; k < 6; k++) advanceHour(); });
+  $("btnAuto").addEventListener("click", (e) => {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; e.target.textContent = "Auto ▶"; e.target.setAttribute("aria-pressed", "false"); return; }
+    autoTimer = setInterval(advanceHour, 900); e.target.textContent = "Pause ❚❚"; e.target.setAttribute("aria-pressed", "true");
+  });
+  $("tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (!b) return; tab = b.dataset.tab; renderTabs(); renderPane(); });
+  $("pane").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return; const m = me(), a = b.dataset.act;
+    if (a === "new") { newGame(); return; }
+    if (!m.hasChog) return;
+    if (a === "buy") { const k = buy(m, landing, +b.dataset.n); toast(k ? `🏗️ Bought ${k} share${k > 1 ? "s" : ""} of ${TILES[landing].name}` : "Not enough cash"); if (k) sys(`You bought ${k} share${k > 1 ? "s" : ""} of ${TILES[landing].name}.`); landing = null; }
+    else if (a === "pass") landing = null;
+    else if (a === "sell") { const g = sell(m, +b.dataset.i, 1); act(); toast(`Sold 1 share for ${fmt(g)}`); }
+    else if (a === "top") { const x = topUp(m, +b.dataset.n); act(); sys(`You added ${fmt0(x)} CHOG from your own wallet.`); toast(`💳 +${x} CHOG topped up`); }
+    else if (a === "tend") { m.lastTend = S.hour; act(); toast("🧹 Streets tended: rent back to 100%"); }
+    else if (a === "dep") { deposit(m, 50); act(); }
+    else if (a === "wd") { withdraw(m, 50); act(); }
+    else if (a === "bor") { const x = borrow(m, 50); toast(x ? `Borrowed ${fmt(x)}` : "No room under your limit"); }
+    else if (a === "rep") { repay(m, 50); act(); }
+    else if (a === "pawn") { m.pawned = true; act(); sys("You pledged Chog #1024 to Uncle Chog."); toast("💍 Chog pledged. Limit +90"); }
+    else if (a === "unpawn") { const lim = 0.5 * shareValue(m); if (m.debt <= lim) { m.pawned = false; act(); toast("Chog back in your wallet"); } else toast(`Repay to ${fmt(lim)} first`); }
+    else if (a === "bid") { const lot = S.lots.find(l => l.id === +b.dataset.l); if (lot && m.cash >= lot.price) { settleLot(lot, m); toast("🔨 Lot won"); } }
+    renderAll();
+  });
+  $("rooms").addEventListener("click", (e) => { const b = e.target.closest("[data-room]"); if (!b) return; room = b.dataset.room; renderChat(); });
+  $("composer").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (e.target.id === "hallForm") {
+      const v = $("hallText").value.trim(); if (!v) return;
+      S.hall.push({ from: 0, text: v, t: now() }); act();
+      const p = P(1 + Math.floor(rng() * 7));
+      setTimeout(() => { say(p.id, "hall", pick(["bold words from a " + TIER_LABEL[tier(me())].toLowerCase(), "noted. see you on my streets 😏", "DM me if you want a deal", "the Danger Board remembers everything", "lol ok tycoon"])); renderChat(); }, reduce ? 0 : 900);
+      renderChat();
+    } else if (e.target.id === "offerForm") {
+      const pid = +room.slice(2), kind = $("oKind").value, i = $("oTile").value, qty = Math.max(1, +$("oQty").value || 1), px = +$("oPx").value;
+      if (i === "" || !px) { toast("Pick a street and a price"); return; }
+      evalYourOffer(pid, kind, +i, qty, px); act(); renderChat();
+    }
+  });
+  $("msgs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-offer]"); if (!b) return;
+    const pid = +b.dataset.from, id = +b.dataset.offer;
+    const msg = S.dms[pid].find(m => m.offer && m.offer.id === id); if (!msg) return;
+    const o = msg.offer;
+    if (b.dataset.yes === "1") {
+      const err = settleOffer(o, pid);
+      o.status = err ? "failed" : "settled";
+      S.dms[pid].push({ from: 0, text: err ? `Couldn't settle: ${err}` : "Accepted ✓", t: now() });
+      if (!err) { S.dms[pid].push({ from: pid, text: pick(["Pleasure 🤝", "Settled. Enjoy the rent.", "Done. Atomic, no screenshots needed."]), t: now() }); sys(`🤝 Private deal settled between you and ${P(pid).name}.`); }
+    } else { o.status = "declined"; S.dms[pid].push({ from: 0, text: "Declined.", t: now() }); }
+    renderAll();
+  });
+
+  newGame();
+})();
+</script>

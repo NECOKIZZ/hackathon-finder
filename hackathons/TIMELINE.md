@@ -37,11 +37,13 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 | Date (deadline) | Hackathon | Prize | Our entry | Status | Notes |
 |---|---|---|---|---|---|
 | **~Nov 1** | **BLI Legal Tech Hackathon 2** | $20k headline ("still developing") | Reuse: Kickoff, 004 Proof of Funds, or 003 ETF League | 🎯 | 1 submission so far. Virtual |
+| Nov 2, 11:45am ET | YouCam API Skin AI & eCommerce VTO (Perfect Corp) | $6k | — | 🟡 | Devpost, YouCam API required, ~900 registered |
 | Nov 11 | Ryo-chan Virtual Hackathon | $15k in tokens + Tokyo trip | — | 🟡 | Couldn't read the page |
 | Nov 12 | PayPal + AI | $60k+ (unverified) | 001 fiat variant / Synesis agent | 🟡 | Confirm the event exists first |
 | Nov 12 | Gemma 4 Developer Agent (Kaggle) | $65k | — | ⛔ | ML fine-tuning |
 | Nov 18 | Meta VR Start | $1M | — | ⛔ | Quest apps |
 | Nov 30 | QIE Hackathon 3.0 | $17k (half paid after traction milestones) | `.arc`-style names on QIE | 🟡 | Mainnet + real users needed |
+| Dec 7 (provisional) | X Layer TapeOut Accelerate | 100k USDT, paid in milestones | RE Agent or a game using TapeOut contracts | 🟡 | Must build in the TapeOut ecosystem on X Layer |
 
 ## Rolling
 | Programme | Money | Our entry | Status |
@@ -65,3 +67,5 @@ Full open list, ranked by deadline, including the Oct 15 roundup: [`OPEN-BY-DEAD
 - Ryo-chan Virtual Hackathon: https://ryobuild.com/
 - PayPal + AI: https://developer.paypal.com/ (no event page found yet)
 - QIE Hackathon 3.0: https://hackathon.qie.digital
+- YouCam API eCommerce: https://youcam-api-skin-ai-ecommerce.devpost.com/
+- X Layer TapeOut Accelerate: https://web3.okx.com/xlayer/build-x-series
