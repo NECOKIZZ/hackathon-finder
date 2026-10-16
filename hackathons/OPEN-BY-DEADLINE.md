@@ -17,7 +17,7 @@
 | 2 | Oct 17, 8pm EDT (runs Oct 16 8am to Oct 17 8pm) | PayBox / MoonPay Hackathons Chapter 1 | $20k USDC (1st $5k) | 🆕 | ✔ checked | https://developer.paybox.sh · https://x.com/PayBox/status/2110461635836170547 |
 | 3 | Oct 18, 11:59pm IST | Graph Hacks (FalkorDB, WeMakeDevs) | $20k, mostly hardware | 🟡 | repo + roundup | https://www.wemakedevs.org/hackathons/falkordb · https://x.com/WeMakeDevs/status/2110324168336281712 |
 | 4 | Oct 18 | Ascend Meme Competition | $2.5k | 🆕 | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
-| 5 | Oct 20 | Ascend Builder Competition | $17.5k (10k / 5k / 2.5k) | 🆕 | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
+| 5 | Oct 20 | Ascend Builder Competition (Elysium) | $17.5k (10k / 5k / 2.5k) | 🎯 Veil ([008](../ideas/008-veil-elysium.md)) | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
 | 6 | Oct 20 (build ends; registration closed Oct 13) | Open Agent Hackathon | up to $20k | 🟡 | repo | https://hackathon.genai.works/ |
 | 7 | Oct 22, 11:59pm PT | TestSprite Season 4 | $4k ($3k projects + $1k CLI bonus) | 🆕 | roundup | https://x.com/Test_Sprite/status/2108346727921295810 |
 | 8 | **Oct 23, 15:00 UTC** | **Chogathon 2026** | $15k, 50 winners | **🎯 registered** | ✔ checked | https://chogathon.chog.xyz/ |
