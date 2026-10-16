@@ -69,3 +69,40 @@ No earlier Chogathon edition was found, so this is the first one.
 - [XPLA × Oasys hackathon](https://coincodex.com/article/31942/beyond-boundaries-xpla-and-oasys-unveils-hackathons-successful-grand-finale)
 - Monad: [Monad Madness HK winners](https://panews.io/articles/y390l6bi) · [Rebel in Paradise AI Hackathon](https://www.kucoin.com/news/flash/monad-ai-hackathon-concludes-with-11-winning-projects-and-major-llm-partnerships)
 - [Story Protocol Digest #054](https://storyprotocoldigest.substack.com/p/story-protocol-digest-054)
+
+---
+
+# Part 2: hackathons built on an existing NFT collection (closest to the Chogathon)
+
+**Finding:** these are rare and poorly documented. The only well-recorded series is **Nouns**. For Pudgy Penguins, Mad Lads, Milady, Azuki, Doodles, Moonbirds, Claynosaurz, SMB, Okay Bears and CryptoKitties, no collection hackathon or winner list was found.
+
+| Collection | Event | Winners (what they built) | How the NFT or art was used |
+|---|---|---|---|
+| **Nouns** | Nouns Prize × ETHGlobal **Lisbon** | **Prepago:** disposable prepaid crypto cards (best public good). **Selfy:** privacy-preserving digital profile (best use of Nouns art) | Nouns art as the design system of a useful product |
+| **Nouns** | Nouns Prize × ETHGlobal **London** | **PG ID:** a smart account that rewards public-goods work (1st, best UX/UI with Nouns art). **DynOS:** email and social-login onboarding (2nd) | Same |
+| **Nouns** | Nouns Prize × ETHGlobal **Istanbul** | **Kandinsky:** smart wallets with no contract code (1st). **S.C.I.:** contract-to-domain verification against phishing (2nd) | Same |
+| **Nouns** | Nouns Prize × ETHGlobal **New York** | 10 winners across 2 categories, including **Onchain Game** and **7Proxies** | Same |
+| **Nouns** | ETHGlobal Singapore 2024 (prize spec) | $5k: "build a public good… use Nouns art as a design system… keep it nounish" | The rule is about the art, not owning the NFT |
+| **Nouns** | Nouns × Farcaster round (Mar 2024) | **Nouns Social**, **489.wtf**, **Nounspace** ("a nounish Farcaster client inspired by Myspace") | Social apps carrying the Nouns brand |
+| **Nouns** | Prop House rounds (Amigos: 19 proposals, 9 ETH) | Sports, illustration, podcasts, meetups, music | Funds community work that spreads the meme |
+| **ApeCoin / BAYC** | ApeCoin prize at ETHGlobal events | Past winners built "MarioKart, social fitness, AI…" (games and social apps) | ApeCoin / ApeChain as the rails |
+| **Aavegotchi** | Sponsored ETHGlobal MarketMake (2021) | Winners were paid 4,000 GHST **sent to their Gotchis**. Teams not listed | The prize went into the NFT itself |
+| **Loot** | No formal hackathon: 100+ derivative projects in one month (2021) | Art, stories, music, games, guilds. Lootchadores sent 2/3 of its revenue back to its parent contract | Loot became a building block others built on |
+
+## What the winners have in common
+1. **The art is the skin, and the product is useful.** Nouns winners were wallets, onboarding, profiles and payment cards wearing Nouns art. None was "more art".
+2. **Charm counts.** Prize text asks entries to be "fun, exciting, curious, outside the box". Judges reward personality.
+3. **The strongest pattern puts value inside the NFT.** Aavegotchi paid prizes into the Gotchis themselves. Loot's best derivatives used the bags as a primitive.
+4. **Social apps with the brand do well** (Nounspace, Nouns Social).
+
+## The difference with the Chogathon
+- The Nouns prizes only required **using the art**.
+- The Chogathon requires **the NFT to be essential**: "If the experience works the same without it, the project needs rework."
+- So the Nouns formula (a useful app with a Chog skin) is **not enough on its own**. The Chog has to *do* something only a Chog can do: hold value, act, earn, or carry reputation.
+
+## Sources (Part 2)
+- Nouns Prize winner pages: [Lisbon](https://nouns-fair.notion.site/Winners-Nouns-Prize-x-ETHGlobal-Lisbon-4d2b46845ee842d98a65cca435a35665) · [London](https://nouns-fair.notion.site/Winners-Nouns-Prize-x-ETHGlobal-London-fd6907f809474b58bb19183a62eb92d2) · [Istanbul](https://nouns-fair.notion.site/Winners-Nouns-Prize-x-ETHGlobal-Istanbul-379dbc955ac04a3f9998ee2c86fbc822) · [New York](https://nouns-fair.notion.site/Winners-Nouns-Prize-x-ETHGlobal-New-York-130e13f7a26640b5a12baa12c918b2ba)
+- [Nouns prize at ETHGlobal Singapore](https://ethglobal.com/events/singapore2024/prizes/nounsdao) · [Nouns × Farcaster winners](https://paragraph.xyz/@nounsdao/nouns-x-farcaster-winners) · [What is Nouns Prop House (Tally)](https://newsletter.tally.xyz/p/wtf-is-nouns-prop-house)
+- [ApeCoin prize at ETHGlobal Brussels](https://ethglobal.com/events/brussels/prizes/apecoin)
+- [Aavegotchi: Hack with Aavegotchi](https://aavegotchi.medium.com/hack-with-aavegotchi-calling-all-devs-e609d4de9006)
+- Loot: [Loot derivatives](https://nonfungible.com/news/game/the-derivatives-of-loot-for-adventurers) · [Loot: The Infinite Hype Machine](https://trevoraron.substack.com/p/loot-the-infinite-hype-machine)
