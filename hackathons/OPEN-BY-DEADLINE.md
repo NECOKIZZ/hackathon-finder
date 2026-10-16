@@ -13,36 +13,27 @@
 
 | # | Deadline | Hackathon | Prize | Status | Source | Link |
 |---|---|---|---|---|---|---|
-| 1 | Oct 16 | Twigpine Project Treetop, Games round | $1k this round ($3k over 3 rounds) | ⛔ skipped: one small prize, no time | roundup | https://x.com/twigpine/status/2108351177394163955 |
-| 2 | Oct 17, 8pm EDT (runs Oct 16 8am to Oct 17 8pm) | PayBox / MoonPay Hackathons Chapter 1 | $20k USDC (1st $5k) | 🎯 **entering** (36-hour sprint) | ✔ checked | https://developer.paybox.sh · https://x.com/PayBox/status/2110461635836170547 |
-| 3 | Oct 18, 11:59pm IST | Graph Hacks (FalkorDB, WeMakeDevs) | $20k, mostly hardware | 🟡 | repo + roundup | https://www.wemakedevs.org/hackathons/falkordb · https://x.com/WeMakeDevs/status/2110324168336281712 |
-| 4 | Oct 18 | Ascend Meme Competition | $2.5k | ⛔ skipped | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
-| 5 | Oct 20 | Ascend Builder Competition (Elysium) | $17.5k (10k / 5k / 2.5k) | 🎯 Veil ([008](../ideas/008-veil-elysium.md)) | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
-| 6 | Oct 20 (build ends; registration closed Oct 13) | Open Agent Hackathon | up to $20k | 🟡 | repo | https://hackathon.genai.works/ |
-| 7 | Oct 22, 11:59pm PT | TestSprite Season 4 | $4k ($3k projects + $1k CLI bonus) | 🆕 | roundup | https://x.com/Test_Sprite/status/2108346727921295810 |
-| 8 | **Oct 23, 15:00 UTC** | **Chogathon 2026** | $15k, 50 winners | **🎯 registered** | ✔ checked | https://chogathon.chog.xyz/ |
-| 9 | Oct 23 | Amazon Developer Hackathon | $138k | ⛔ | repo | — |
-| 10 | Oct 25 | Web3 for Social Good (SMU) | Pending | ⛔ | repo | https://dorahacks.io/hackathon/web3-social-good-2026/detail |
-| 11 | Oct 27 | GitLab Life After Code | $45k | 🆕 | roundup (page returned 403) | https://gitlab-transcend.devpost.com · https://x.com/gitlab/status/2107897027791114291 |
-| 12 | **Oct 28, 23:59 UTC** | **Zecathon** | $100k | 🎯 | ✔ checked | https://thezecathon.com/ |
-| 13 | Oct 30 | Qloo Agentic Hackathon | $25k | 🟡 | repo | https://qloo.devpost.com/ |
-| 14 | Oct 30 | Nebius × NVIDIA Global AI | $50k+ | 🟡 | repo | https://nebiusglobalaihackathon.devpost.com/ |
-| 15 | Oct 31 | MDBA Youth Blockchain | unknown | ⛔ | repo | — |
-| 16 | October (no exact date) | TapeOut Genesis Transistor (X Layer) | $14k | ⛔ | repo | — |
-| 17 | **~Nov 1** | **BLI Legal Tech Hackathon 2** | $20k headline | 🎯 | repo | https://dorahacks.io/hackathon/legal-hack-2026/detail |
-| 18 | **Nov 2, 11:45am ET** | YouCam API Skin AI & eCommerce VTO Hackathon (Perfect Corp, Devpost) | $6k ($2.5k / $1k / $500, plus $1k Women in Tech and $1k Rising Star) | 🆕 🟡 | ✔ checked | https://youcam-api-skin-ai-ecommerce.devpost.com/ · [press release](https://www.businesswire.com/news/home/20261013363370/en/Perfect-Corp.s-YouCam-API-Hackathon-Is-Back-Now-Focused-on-eCommerce-with-a-%246000-Prize-Pool) |
-| 19 | Nov 9, 09:00 GMT | Celo Agents on Open Rails | $5k across 4 tracks | 🆕 | ✔ checked | https://loops.house/agents-on-open-rails · https://x.com/CeloDevs/status/2108161299838550486 |
-| 20 | Nov 11 | Nimiq Mini Apps Competition, Cycle 3 | $17k USDC | 🆕 | roundup | https://x.com/miniappscomp/status/2110403290328449276 · https://x.com/nimiq/status/2110400145028170212 |
-| 21 | Nov 11 | Ryo-chan Virtual Hackathon | $15k in tokens | 🟡 | repo | https://ryobuild.com/ |
-| 22 | Nov 12 | PayPal + AI | $60k+ in repo, $67.5k per roundup | 🟡 | repo + roundup | https://developer.paypal.com/ |
-| 23 | Nov 12 | Gemma 4 Developer Agent (Kaggle) | $65k | ⛔ | repo | https://www.kaggle.com/competitions/gemma-4-developer-agent |
-| 24 | **Nov 13 (submissions)** · build from Oct 25 · applications closed Oct 23 | **Airwallex Agentic Banking** | $100k headline (prizes and credits listed add up to $156k) | 🎯 registered (Synesis) | ✔ checked | https://airwallex.hackerearth.com · https://x.com/airwallex/status/2107148620617420932 |
-| 25 | Nov 14 (registration closes Nov 5) | Lexsi AI Safety & Alignment | $30k+ in prizes and credits | 🆕 | ✔ checked | https://hackathon.lexsi.ai · https://x.com/Lexsi_labs/status/2109553969202921975 |
-| 26 | Nov 15 | Mezo Buildathon | $7k in MEZO | ⛔ | repo | — |
-| 27 | Nov 18 | Meta VR Start | $1M | ⛔ | repo | — |
-| 28 | Nov 30 (repo) or Dec 10 (roundup) | QIE Hackathon 3.0 | $17k | 🟡 | repo + roundup, dates conflict | https://hackathon.qie.digital · https://x.com/qieblockchain/status/2098645510848410088 |
-| 29 | **Dec 7, 23:59 UTC** (provisional) | X Layer TapeOut Accelerate (OKX / X Layer × TapeOut) | 100k USDT (1 × 20k, 5 × 10k, 5 × 6k), paid in milestone stages | 🆕 🟡 | ✔ checked | https://web3.okx.com/xlayer/build-x-series · [OKX Wallet post](https://x.com/OKXWallet_CN/status/2110923153388273991) |
-| 30 | Rolling | Circle Grants | up to $100k USDC | 🎯 | repo | https://www.circle.com/grant |
+| 1 | Oct 17, 8pm EDT (runs Oct 16 8am to Oct 17 8pm) | PayBox / MoonPay Hackathons Chapter 1 | $20k USDC (1st $5k) | 🎯 **entering** (36-hour sprint) | ✔ checked | https://developer.paybox.sh · https://x.com/PayBox/status/2110461635836170547 |
+| 2 | Oct 18, 11:59pm IST | Graph Hacks (FalkorDB, WeMakeDevs) | $20k, mostly hardware | 🟡 | repo + roundup | https://www.wemakedevs.org/hackathons/falkordb · https://x.com/WeMakeDevs/status/2110324168336281712 |
+| 3 | Oct 20 | Ascend Builder Competition (Elysium) | $17.5k (10k / 5k / 2.5k) | 🎯 Veil ([008](../ideas/008-veil-elysium.md)) | roundup | https://x.com/AscendLaunch/status/2106189953210454331 (submit in Discord) |
+| 4 | Oct 20 (build ends; registration closed Oct 13) | Open Agent Hackathon | up to $20k | 🟡 | repo | https://hackathon.genai.works/ |
+| 5 | Oct 22, 11:59pm PT | TestSprite Season 4 | $4k ($3k projects + $1k CLI bonus) | 🆕 | roundup | https://x.com/Test_Sprite/status/2108346727921295810 |
+| 6 | **Oct 23, 15:00 UTC** | **Chogathon 2026** | $15k, 50 winners | **🎯 registered** | ✔ checked | https://chogathon.chog.xyz/ |
+| 7 | Oct 27 | GitLab Life After Code | $45k | 🆕 | roundup (page returned 403) | https://gitlab-transcend.devpost.com · https://x.com/gitlab/status/2107897027791114291 |
+| 8 | **Oct 28, 23:59 UTC** | **Zecathon** | $100k | 🎯 | ✔ checked | https://thezecathon.com/ |
+| 9 | Oct 30 | Qloo Agentic Hackathon | $25k | 🟡 | repo | https://qloo.devpost.com/ |
+| 10 | Oct 30 | Nebius × NVIDIA Global AI | $50k+ | 🟡 | repo | https://nebiusglobalaihackathon.devpost.com/ |
+| 11 | **~Nov 1** | **BLI Legal Tech Hackathon 2** | $20k headline | 🎯 | repo | https://dorahacks.io/hackathon/legal-hack-2026/detail |
+| 12 | **Nov 2, 11:45am ET** | YouCam API Skin AI & eCommerce VTO Hackathon (Perfect Corp, Devpost) | $6k ($2.5k / $1k / $500, plus $1k Women in Tech and $1k Rising Star) | 🆕 🟡 | ✔ checked | https://youcam-api-skin-ai-ecommerce.devpost.com/ · [press release](https://www.businesswire.com/news/home/20261013363370/en/Perfect-Corp.s-YouCam-API-Hackathon-Is-Back-Now-Focused-on-eCommerce-with-a-%246000-Prize-Pool) |
+| 13 | Nov 9, 09:00 GMT | Celo Agents on Open Rails | $5k across 4 tracks | 🆕 | ✔ checked | https://loops.house/agents-on-open-rails · https://x.com/CeloDevs/status/2108161299838550486 |
+| 14 | Nov 11 | Nimiq Mini Apps Competition, Cycle 3 | $17k USDC | 🆕 | roundup | https://x.com/miniappscomp/status/2110403290328449276 · https://x.com/nimiq/status/2110400145028170212 |
+| 15 | Nov 11 | Ryo-chan Virtual Hackathon | $15k in tokens | 🟡 | repo | https://ryobuild.com/ |
+| 16 | Nov 12 | PayPal + AI | $60k+ in repo, $67.5k per roundup | 🟡 | repo + roundup | https://developer.paypal.com/ |
+| 17 | **Nov 13 (submissions)** · build from Oct 25 · applications closed Oct 23 | **Airwallex Agentic Banking** | $100k headline (prizes and credits listed add up to $156k) | 🎯 registered (Synesis) | ✔ checked | https://airwallex.hackerearth.com · https://x.com/airwallex/status/2107148620617420932 |
+| 18 | Nov 14 (registration closes Nov 5) | Lexsi AI Safety & Alignment | $30k+ in prizes and credits | 🆕 | ✔ checked | https://hackathon.lexsi.ai · https://x.com/Lexsi_labs/status/2109553969202921975 |
+| 19 | Nov 30 (repo) or Dec 10 (roundup) | QIE Hackathon 3.0 | $17k | 🟡 | repo + roundup, dates conflict | https://hackathon.qie.digital · https://x.com/qieblockchain/status/2098645510848410088 |
+| 20 | **Dec 7, 23:59 UTC** (provisional) | X Layer TapeOut Accelerate (OKX / X Layer × TapeOut) | 100k USDT (1 × 20k, 5 × 10k, 5 × 6k), paid in milestone stages | 🆕 🟡 | ✔ checked | https://web3.okx.com/xlayer/build-x-series · [OKX Wallet post](https://x.com/OKXWallet_CN/status/2110923153388273991) |
+| 21 | Rolling | Circle Grants | up to $100k USDC | 🎯 | repo | https://www.circle.com/grant |
 
 ## In the roundup, deadline not given
 | Hackathon | Prize | Link |
@@ -69,3 +60,14 @@
   - Note: TapeOut Genesis was ⛔ in October as a "token launchpad". This program is wider (apps, games, tools, circuits).
   - **Possible fits:** the Cuerate RE Agent (already on OKX / X Layer), or Chog City / Archer-style games using TapeOut contracts.
   - Judged on user value and commercial potential, innovation, ecosystem integration, readiness, and a ≤3 minute demo.
+
+## Removed as not feasible (Oct 16)
+- Twigpine Project Treetop, Games round (Oct 16): ⛔ skipped: one small prize, no time
+- Ascend Meme Competition (Oct 18): ⛔ skipped
+- Amazon Developer Hackathon (Oct 23): ⛔
+- Web3 for Social Good (SMU) (Oct 25): ⛔
+- MDBA Youth Blockchain (Oct 31): ⛔
+- TapeOut Genesis Transistor (X Layer) (October (no exact date)): ⛔
+- Gemma 4 Developer Agent (Kaggle) (Nov 12): ⛔
+- Mezo Buildathon (Nov 15): ⛔
+- Meta VR Start (Nov 18): ⛔
