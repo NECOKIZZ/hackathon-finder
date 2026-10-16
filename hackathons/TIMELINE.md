@@ -18,7 +18,7 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 | **Oct 11, 12:00 UTC** | **BNB Hack: Tokenized Stocks** | $20k + 2 × $2k specials | **003 ETF League** (or 002 Busha for Stocks / weekend spread engine) | ✅ submitted | Ondo / xStocks / bStocks central, BSC mainnet, spot only. Dev-experience report = 25% |
 | **Oct 12, 11:59pm PT** | **Colosseum Crypto World's Fair** | $840k total; Robinhood Chain track 5 × $5k; 20 × $15k standouts | **Kickoff** (+ Monday Open markets as new work) | ✅ submitted | Pre-existing code allowed if disclosed; judged on work since Sep 14. One submission per team |
 | **Oct 13** | **Monad Metropolis** | $250k+ (tracks + ~$81k bounties) | **001 KOL Impression Streams** (Track 03 + CRE, Privy, MetaMask, Nansen, Agora, Aurora bounties) | ✅ submitted | New work since Sep 1. See `2026-10-monad-metropolis/` |
-| Oct 13 (registration) · build Oct 15–20 | Open Agent Hackathon | up to $20k | 007 Agent Compute Staking | 🟡 | Prize detail not public |
+| **Oct 27** (registration until Oct 22) | **Open Agent Hackathon** | up to $20k | 007 Agent Compute Staking | 🎯 registered | |
 | **Oct 14** | **Arc Microgrants Mainnet Challenge** | 20 × $500 USDC | Synesis / Cuerate / `.arc` redeployed on Arc mainnet | ✅ submitted | Rolling review: submit early |
 | Oct 14 (kickoff) | Portaldot Hacker House | $5.2k | — | ⛔ | Not open yet + low prize |
 | **Oct 17, 8pm EDT** | **PayBox / MoonPay Hackathons Chapter 1** | $20k USDC (1st $5k) | TBD (36-hour sprint) | 🎯 | Build a PayBox marketplace plugin. https://developer.paybox.sh |
@@ -28,8 +28,8 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 | Oct 23 | Amazon Developer Hackathon | $138k | — | ⛔ | Fire TV / Alexa+ / Ring |
 | Oct 25 | Web3 for Social Good (SMU) | Pending | — | ⛔ | In-person final in Singapore |
 | **Oct 28, 23:59 UTC** | **Zecathon** (Zcash privacy) | $100k: 5 tracks × $15k + $20k grand prize | **004 Proof of Funds** (Core & Tooling) or **005 Ajo** (Shielded Payments) | 🎯 | Code written in window, open source, one submission per account |
-| Oct 30 | Qloo Agentic Hackathon | $25k | 001 variant (taste-matched KOLs) | 🟡 | |
-| Oct 30 | Nebius × NVIDIA Global AI | $50k+ | 007 (Nebius GPUs as compute supply) | 🟡 | |
+| Oct 30 | Qloo Agentic Hackathon | $25k | 001 variant (taste-matched KOLs) | 🎯 | |
+| Oct 30 | Nebius × NVIDIA Global AI | $50k+ | 007 (Nebius GPUs as compute supply) | ⛔ | |
 | Oct 31 | MDBA Youth Blockchain Hackathon | unknown | — | ⛔ | Youth-only |
 | October | TapeOut Genesis Transistor (X Layer) | $14k | — | ⛔ | Token launchpad, not chip design |
 

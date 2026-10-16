@@ -1,0 +1,107 @@
+<title>October Hackathon Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a wall planner. A day strip for Oct 16–31 on top, then one card per deadline in date order. */
+:root {
+  --bg: #f1f3ee; --card: #ffffff; --ink: #1d2320; --muted: #5d6a63; --line: #d5dbd4;
+  --go: #1f7a55; --go-soft: #dff1e7; --maybe: #b07a12; --maybe-soft: #fbefd2; --new: #4d5bb8; --new-soft: #e4e7fa;
+  --today: #d4472f;
+  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141917; --card: #1c2320; --ink: #e9eee9; --muted: #9db0a6; --line: #2e3a35;
+  --go: #5fd39b; --go-soft: #1c3a2c; --maybe: #f2c35a; --maybe-soft: #3a3019; --new: #9aa7ff; --new-soft: #262c4d; --today: #ff7a62; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #141917; --card: #1c2320; --ink: #e9eee9; --muted: #9db0a6; --line: #2e3a35;
+  --go: #5fd39b; --go-soft: #1c3a2c; --maybe: #f2c35a; --maybe-soft: #3a3019; --new: #9aa7ff; --new-soft: #262c4d; --today: #ff7a62; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 40px; }
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 22px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 10px 24px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 5vw, 48px); line-height: 1; margin: 0; letter-spacing: -0.02em; }
+h1 span { color: var(--today); }
+.sub { color: var(--muted); margin: 6px 0 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+.chip.go { background: var(--go-soft); color: var(--go); } .chip.maybe { background: var(--maybe-soft); color: var(--maybe); } .chip.new { background: var(--new-soft); color: var(--new); }
+
+.strip { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; overflow-x: auto; }
+.days { display: grid; grid-template-columns: repeat(16, minmax(46px, 1fr)); gap: 4px; min-width: 760px; }
+.day { border-radius: 8px; padding: 6px 4px; min-height: 92px; display: flex; flex-direction: column; gap: 3px; background: var(--bg); }
+.day .d { font: 500 12px var(--mono); color: var(--muted); text-align: center; }
+.day.today { outline: 2px solid var(--today); }
+.day.today .d { color: var(--today); font-weight: 700; }
+.pin { font-size: 10.5px; font-weight: 700; line-height: 1.15; padding: 3px 4px; border-radius: 5px; text-align: center; }
+.pin.go { background: var(--go); color: var(--card); } .pin.maybe { background: var(--maybe-soft); color: var(--maybe); } .pin.new { background: var(--new-soft); color: var(--new); }
+
+.cards { display: grid; gap: 10px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 16px; }
+.card.go { border-left: 6px solid var(--go); } .card.maybe { border-left: 6px solid var(--maybe); } .card.new { border-left: 6px solid var(--new); }
+.date { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; }
+.date small { display: block; font: 500 11.5px var(--mono); color: var(--muted); margin-top: 4px; }
+.name { font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.15; }
+.idea { margin-top: 4px; font-size: 14.5px; }
+.idea b { color: var(--go); }
+.idea.none { color: var(--muted); font-style: italic; }
+.prize { font: 500 15px var(--mono); text-align: right; white-space: nowrap; }
+.prize small { display: block; margin-top: 6px; }
+@media (max-width: 640px) {
+  .card { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .prize { text-align: left; }
+}
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>October <span>deadlines</span></h1>
+      <p class="sub">Every open hackathon with an October deadline, with the idea we'd bring. As of Thu Oct 16, 2026.</p>
+    </div>
+    <div class="legend"><span class="chip go">● Entering</span><span class="chip maybe">● Maybe</span><span class="chip new">● Not assessed</span></div>
+  </header>
+
+  <div class="strip" aria-label="Day strip, Oct 16 to 31">
+    <div class="days" id="days"></div>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <footer>Removed as not feasible: Twigpine, Ascend Meme, Amazon, MDBA Youth, TapeOut Genesis, Nebius × NVIDIA. TestSprite is on standby. Airwallex submissions are due Nov 13; applications close Oct 23.</footer>
+</div>
+
+<script>
+const ITEMS = [
+  { d: 17, when: "Oct 17", time: "8pm EDT", name: "PayBox / MoonPay Chapter 1", short: "PayBox", prize: "$20k USDC", s: "go", idea: "A PayBox marketplace plugin. Idea still to pick: Synesis payment flows or .arc names as candidates", tbd: true },
+  { d: 18, when: "Oct 18", time: "11:59pm IST", name: "Graph Hacks (FalkorDB)", short: "Graph Hacks", prize: "$20k, mostly hardware", s: "maybe", idea: "<b>Synesis</b> agent memory as a FalkorDB knowledge graph" },
+  { d: 20, when: "Oct 20", time: "", name: "Ascend Builder Competition (Elysium)", short: "Ascend · Veil", prize: "$17.5k", s: "go", idea: "<b>Veil</b>: sealed-bid fair launches on Elysium. No sniping, one clearing price, liquidity locked" },
+  { d: 22, when: "Oct 22", time: "11:59pm PT", name: "TestSprite Season 4 (standby)", short: "TestSprite ⏸", prize: "$4k", s: "new", idea: "On standby: small pool, similar concept to #neathack. Quick option: wire TestSprite checks into a live app like Cuerate", none: true },
+  { d: 23, when: "Oct 23", time: "15:00 UTC", name: "Chogathon 2026", short: "Chogathon", prize: "$15k · 50 winners", s: "go", idea: "<b>Chog City</b>: the Landlord's Game. Your Chog is the pawn, wallet and collateral: street shares, Pawnshop loans, liquidation auctions" },
+  { d: 23, when: "Oct 23", time: "applications", name: "Airwallex Agentic Banking (apply)", short: "Airwallex apply", prize: "$100k+", s: "go", idea: "<b>Synesis</b>: the agentic money app. Submit the application by Oct 23, build from Oct 25, submissions due Nov 13" },
+  { d: 25, when: "Oct 25", time: "final in Singapore", name: "Web3 for Social Good (SMU)", short: "Social Good", prize: "Pending", s: "maybe", idea: "No idea yet. The shortlist must present in person in Singapore on Nov 26", none: true },
+  { d: 27, when: "Oct 27", time: "", name: "GitLab Life After Code", short: "GitLab", prize: "$45k", s: "new", idea: "No idea yet", none: true },
+  { d: 27, when: "Oct 27", time: "registered", name: "Open Agent Hackathon", short: "Open Agent", prize: "up to $20k", s: "go", idea: "<b>007 Agent Compute Staking</b>: deposit USDC, interest streamed as compute, idle capacity sold to other agents" },
+  { d: 28, when: "Oct 28", time: "23:59 UTC", name: "Zecathon", short: "Zecathon", prize: "$100k", s: "go", idea: "<b>004 Proof of Funds</b> (Core & Tooling) or <b>005 Ajo</b> private savings circle (Shielded Payments)" },
+  { d: 30, when: "Oct 30", time: "", name: "Qloo Agentic Hackathon", short: "Qloo", prize: "$25k", s: "go", idea: "<b>001 KOL Impression Streams</b>, variant: KOLs matched to projects by taste" },
+];
+const days = document.getElementById("days");
+let html = "";
+for (let d = 16; d <= 31; d++) {
+  const pins = ITEMS.filter(i => i.d === d).map(i => `<div class="pin ${i.s}">${i.short}</div>`).join("");
+  html += `<div class="day${d === 16 ? " today" : ""}"><div class="d">${d === 16 ? "Today" : "Oct " + d}</div>${pins}</div>`;
+}
+days.innerHTML = html;
+const label = { go: "Entering", maybe: "Maybe", new: "Not assessed" };
+document.getElementById("cards").innerHTML = ITEMS.map(i => `
+  <article class="card ${i.s}">
+    <div class="date">${i.when.replace("Oct ", "Oct&nbsp;")}<small>${i.time || "&nbsp;"}</small></div>
+    <div><div class="name">${i.name}</div><div class="idea${i.none ? " none" : ""}">${i.idea}</div></div>
+    <div class="prize">${i.prize}<small><span class="chip ${i.s}">${label[i.s]}</span></small></div>
+  </article>`).join("");
+</script>
