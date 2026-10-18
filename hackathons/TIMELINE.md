@@ -21,8 +21,8 @@ Everything researched on 2026-10-04 (updated 2026-10-15), in deadline order. All
 | **Oct 27** (registration until Oct 22) | **Open Agent Hackathon** | up to $20k | 007 Agent Compute Staking | 🎯 registered | |
 | **Oct 14** | **Arc Microgrants Mainnet Challenge** | 20 × $500 USDC | Synesis / Cuerate / `.arc` redeployed on Arc mainnet | ✅ submitted | Rolling review: submit early |
 | Oct 14 (kickoff) | Portaldot Hacker House | $5.2k | — | ⛔ | Not open yet + low prize |
-| **Oct 17, 8pm EDT** | **PayBox / MoonPay Hackathons Chapter 1** | $20k USDC (1st $5k) | TBD (36-hour sprint) | 🎯 | Build a PayBox marketplace plugin. https://developer.paybox.sh |
-| Oct 15–18 | Graph Hacks (FalkorDB) | $20k, mostly hardware | Synesis agent memory | 🟡 | |
+| **Oct 17, 8pm EDT** | **PayBox / MoonPay Hackathons Chapter 1** | $20k USDC (1st $5k) | Marketplace plugin | ✅ submitted | Build a PayBox marketplace plugin. https://developer.paybox.sh |
+| Oct 15–18 | Graph Hacks (FalkorDB) | $20k, mostly hardware | Synesis agent memory | ⛔ | Skipped: clashed with PayBox |
 | Oct 16 – Nov 15 | Mezo Buildathon | $7k in MEZO | — | ⛔ | Low prize, paid in token |
 | **Oct 23, 15:00 UTC** (registration closed Oct 11, 13:00 UTC) | **Chogathon 2026** (Chog NFTs) | $15k, 50 winners (may drop to $10k) | TBD: the Chog NFT has to be essential to the app | 🎯 registered | Judged on Novelty 30%, Fun 20%, Retention 20%, Clarity 15%, Execution 15%. Demo video ≤ 3 min. $CHOG use earns bonus points. The site also shows Oct 9 as a close date, so confirm with the organisers |
 | Oct 23 | Amazon Developer Hackathon | $138k | — | ⛔ | Fire TV / Alexa+ / Ring |
