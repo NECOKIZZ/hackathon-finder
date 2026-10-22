@@ -17,6 +17,7 @@ Full hackathon mapping: [`hackathons/2026-10-october-list/MAPPING.md`](../hackat
 | [007](007-agent-compute-staking.md) | Agent Compute Staking | Agents stake and get compute streamed as yield. Polished: no-loss USDC → compute + idle capacity sold to other agents | Captured + critiqued | Circle Grants 🟢 · Monad / Nebius / Open Agent 🟡 |
 | [008](008-veil-elysium.md) | Veil on Elysium | Sealed-bid fair launches (no sniping) → private buys → dark-pool OTC at the HyperCore price | Picked | **Ascend Builder Competition (Elysium) 🟢** · Zecathon Private Markets 🟡 |
 | [009](009-chog-monopoly.md) | Chog City (Landlord's Game v3) | Living async city: Chog = pawn + wallet + collateral; street shares, Bank, Pawnshop (borrow vs your Chog), liquidation auctions, Hustle decay for absent players | Picked (v3) | **Chogathon 🟢 (registered)** |
+| [010](010-chogopoly.md) | **Chogopoly** | Monopoly on Monad where land belongs to Chog NFTs: 28 squares are real Monad dapps, Bricks bound to the Chog, $CHOG economy with exit tax + Prestige so value stays in the NFT | Spec'd + prototype | **Chogathon 🟢 (supersedes 009)** |
 | — | Cuerate on Monad (curator rewards) | Early likers earn when a post takes off. A paid-curation feed | Candidate | Monad Metropolis: Track 03 |
 | — | Kickoff on Monad (on-chain settlement + in-play) | Fully on-chain proximity markets with per-block in-play pricing | Candidate | **Kickoff as-is → Colosseum Robinhood Chain track 🟢🟢** · Monad Metropolis Track 01 🟡 |
 
