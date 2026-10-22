@@ -8,6 +8,7 @@
       <button class="btn sm ghost" id="speed" aria-label="Change game speed">Speed: 1×</button>
       <button class="btn sm" id="ff1">+2 hours</button>
       <button class="btn sm" id="ffd">+1 day</button>
+      <button class="btn sm gold" id="help" aria-label="Help, tour and glossary">? Help</button>
     </div>
   </div>
 </header>
@@ -34,6 +35,7 @@
             </div>
             <div class="lastev" id="lastev">Wake your Chog to start.</div>
             <button class="rollbtn" id="roll">ROLL</button>
+            <button class="btn sm danger" id="bail" hidden>Pay 500 bail</button>
             <div class="plans" role="group" aria-label="Roll plan">
               <button data-plan="safe" aria-pressed="false" title="Buys up to 3 Bricks on cheap streets, keeps half your cash">SAFE</button>
               <button data-plan="balanced" aria-pressed="true" title="Buys up to 6 Bricks anywhere, keeps a quarter of your cash">BALANCED</button>
@@ -43,8 +45,8 @@
             <div class="minifeed" id="minifeed" aria-live="polite"></div>
           </div>
           <div class="cbot">
-            <div class="pot"><span>Commons</span><b id="pCommons">0</b></div>
-            <div class="pot gold"><span>Nad Lounge pot</span><b id="pLounge">0</b></div>
+            <div class="pot" id="potCommons" title="The shared treasury. Pays GENESIS dividends, cards and claim bonuses. Funded by fees and taxes."><span>Commons</span><b id="pCommons">0</b></div>
+            <div class="pot gold" id="potLounge" title="Land on NAD LOUNGE to win 25% of this pot. Taxes and fines refill it."><span>Nad Lounge pot</span><b id="pLounge">0</b></div>
             <div class="pot hide-sm"><span>Season pot</span><b id="pSeason">0</b></div>
             <div class="pot hide-sm"><span>Burned</span><b id="pBurn">0</b></div>
           </div>
@@ -58,6 +60,7 @@
     </section>
 
     <aside class="panel" aria-label="Your Chog">
+      <div id="goals"></div>
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-tab="chog">My Chog</button>
         <button role="tab" aria-selected="false" data-tab="land">Land</button>

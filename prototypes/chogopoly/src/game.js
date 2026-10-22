@@ -382,10 +382,10 @@ async function rollMe() {
   await showDice(d1, d2);
   if (c.jail > 0) {
     if (d1 === d2 || c.jailCard) { c.jail = 0; if (c.jailCard && d1 !== d2) c.jailCard = false; log("You walked out of Rug Jail.", "me"); }
-    else { c.jail--; log(c.jail ? `No doubles. ${c.jail} tries left in Rug Jail.` : "No doubles. You serve your time: next roll you're free.", "me"); if (!c.jail) c.jail = 0; G.busy = false; return render(); }
+    else { c.jail--; log(c.jail ? `No doubles. ${c.jail} tries left in Rug Jail.` : "No doubles. You serve your time: next roll you're free.", "me"); if (!c.jail) c.jail = 0; G.busy = false; render(); return window.Guide?.on("rolled", { jail: true }); }
   }
   c.doubles = d1 === d2 ? (c.doubles || 0) + 1 : 0;
-  if (c.doubles === 3) { toJail(c); log("Three doubles in a row. Straight to Rug Jail.", "bad"); G.busy = false; return render(); }
+  if (c.doubles === 3) { toJail(c); log("Three doubles in a row. Straight to Rug Jail.", "bad"); G.busy = false; render(); return window.Guide?.on("rolled", { jail: true }); }
   await hop(c, d1 + d2);
   const r = land(c, d1 + d2);
   flashTile(c.pos);
@@ -399,6 +399,7 @@ async function rollMe() {
   if (r.card) openCard(/Entropy/.test(r.note) ? "Entropy card" : "Commons Chest", r.card);
   else if (SQ[c.pos].t === "prop") openTile(c.pos, true);
   else if (r.heist) openHeist();
+  window.Guide?.on("rolled", { r, pos: c.pos, sq: SQ[c.pos], jail: c.jail > 0 });
 }
 
 function doQuest(i) {
@@ -421,7 +422,7 @@ function doQuest(i) {
   const first = !c.stamps.has(i); c.stamps.add(i); (c.stampAt = c.stampAt || {})[i] = c.stampAt?.[i] ?? G.t;
   if (c.qday[i] !== day) { c.qday[i] = day; c.rolls++; }
   toast(first ? `New Patron Stamp: ${s.dapp}. +1% claim weight and +1 free roll.` : `Quest done again today: +1 free roll.`);
-  openTile(i, true); render();
+  openTile(i, true); render(); window.Guide?.on("quest", { i, first });
 }
 
 function openHeist() {
@@ -432,9 +433,11 @@ function openHeist() {
   <div class="targets">${opts.length ? opts.map(t => { const ch = clamp(K.heistBase + (isLaser(me) ? 5 : 0) + (isHeistHat(me) ? 5 : 0) - TIER_DEF[t.tier] - t.guards * 5 - (isVisor(t) ? 5 : 0), 10, 80);
     return `<button data-heist="${t.id}"><i style="background-image:url(${t.img})"></i><span><b>${t.name}</b><br><small>${t.tier} · ${t.guards} guards · ${fmt(t.unclaimed)} unclaimed</small></span><span class="num">${ch}%</span></button>`; }).join("") : `<p class="sub">Nobody has 500+ unclaimed rent right now. The heist crew goes home.</p>`}</div>
   <button class="btn ghost" style="color:var(--ink);border-color:var(--ink)" data-close>Walk away</button>`);
+  window.Guide?.on("heistOpen");
 }
 function openCard(title, text) {
   sheet(`<div class="band" style="background:var(--chog)"></div><h3>${title}</h3><p style="margin:0;font-size:16px">${text}</p><p class="sub">Card draws use the roll's random seed (Pyth Entropy epoch on mainnet).</p><button class="btn gold" data-close>OK</button>`);
+  window.Guide?.on("card");
 }
 
 function openTile(i, landed) {
@@ -470,6 +473,7 @@ function openTile(i, landed) {
   </div>
   ${n ? `<div class="row"><button class="btn sm" data-sell="${i}" data-n="1">Sell 1 Brick (+${fmt(sellValue(p, 1) * 0.95)})</button><span class="sub">5% spread goes to the Commons. Cash stays in your Chog.</span></div>` : ""}
   <button class="btn gold" data-close>${landed ? "Keep playing" : "Close"}</button>`);
+  window.Guide?.on("tile", { i, landed });
 }
 
 function requestCashOut(amt) {
@@ -478,6 +482,7 @@ function requestCashOut(amt) {
   c.cash -= amt; G.commons += tax * 0.5; burn(tax * 0.25); G.season += tax * 0.25; G.cashedToday += amt;
   const lost = prestige(c); c.lastCash = G.t;
   c.queue.push({ amt, net: amt - tax, at: G.t + K.queue, ready: false });
+  window.Guide?.on("cashout");
   log(`You requested a cash-out of ${fmt(amt)}. Exit tax ${fmt(tax)} (${Math.round(r * 100)}%). Prestige +${lost}% reset to 0. Ready in 48h.`, "bad");
   toast(`Cash-out queued. ${fmt(amt - tax)} arrives in your wallet in 48 hours.`); render();
 }
@@ -570,6 +575,8 @@ function render() {
   document.querySelectorAll(".plans button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.plan === G.plan)));
   $("#minifeed").innerHTML = G.feed.slice(0, 3).map(f => `<div class="${f.cls}">${f.text}</div>`).join("");
   renderTiles(); renderPawns(); renderPane();
+  if (c) $("#bail").hidden = !c.jail;
+  window.Guide?.on("render");
 }
 
 var renderPane = function () {
@@ -616,7 +623,7 @@ var renderPane = function () {
       <dl class="kv"><dt>$CHOG</dt><dd>${fmt(G.wallet.chog)}</dd><dt>MON</dt><dd>${G.wallet.mon.toFixed(1)}</dd><dt>USDC</dt><dd>${fmt(G.wallet.usdc)}</dd></dl>
       <div class="row"><button class="btn sm" id="topup">Top up 5,000 $CHOG into the Chog</button></div>
     </div>`;
-    $("#claimBtn").onclick = () => { const g = claim(c); log(`Claimed ${fmt(g)} into your Chog's cash.`, "me"); toast(`+${fmt(g)} claimed. It stays in the Chog.`); render(); };
+    $("#claimBtn").onclick = () => { const g = claim(c); log(`Claimed ${fmt(g)} into your Chog's cash.`, "me"); toast(`+${fmt(g)} claimed. It stays in the Chog.`); render(); window.Guide?.on("claimed"); };
     $("#topup").onclick = () => { if (G.wallet.chog < 5000) return toast("Practice wallet is empty."); G.wallet.chog -= 5000; c.cash += 5000; G.inflow += 5000; c.broke = false; render(); };
   }
   if (G.tab === "land") {
@@ -641,8 +648,8 @@ var renderPane = function () {
       <div class="sub">Each guard costs 500 (half burned, half to the Commons) and lowers Heist odds against you by 5%. Max 4.</div>
       <div class="row sp"><span class="num">${c.guards} / 4 guards · ${c.warden} Warden pts</span><button class="btn sm" id="guard" ${c.guards >= 4 ? "disabled" : ""}>Hire a guard</button></div>
     </div>`;
-    pane.querySelectorAll("[data-tax]").forEach(b => b.onclick = () => { const r = prepayTax(c, +b.dataset.tax); if (r === -1) toast("Not enough cash in the Chog."); else { log(`Prepaid ${fmt(r)} Property Tax.`, "me"); render(); } });
-    $("#autoTax").onchange = e => { c.autoTax = e.target.checked; render(); };
+    pane.querySelectorAll("[data-tax]").forEach(b => b.onclick = () => { const r = prepayTax(c, +b.dataset.tax); if (r === -1) toast("Not enough cash in the Chog."); else { log(`Prepaid ${fmt(r)} Property Tax.`, "me"); render(); window.Guide?.on("tax"); } });
+    $("#autoTax").onchange = e => { c.autoTax = e.target.checked; render(); window.Guide?.on("tax"); };
     pane.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openTile(+b.dataset.open, false));
     $("#guard").onclick = () => { if (c.cash < K.guardCost) return toast("Not enough cash."); payTo(c, 250, "burn"); payTo(c, 250, "commons"); c.guards++; render(); };
   }
@@ -712,7 +719,7 @@ var renderPane = function () {
       <dt>Difference</dt><dd>${Math.abs(G.inflow - G.outflow - G.burned - held) < 5 ? '<span class="pill ok">balanced</span>' : fmt(G.inflow - G.outflow - G.burned - held)}</dd></dl>
     </div>
     <div class="card"><div class="h">City feed</div><div class="feed">${G.feed.map(f => `<div class="${f.cls}"><time>${clockStr(f.t)}</time>${f.text}</div>`).join("")}</div></div>`;
-    const h = $("#hypeTop"); if (h) h.onclick = () => { const t = ranked.find(x => x !== c); if (hype(c, t, 300)) render(); else toast("Not enough cash."); };
+    const h = $("#hypeTop"); if (h) h.onclick = () => { const t = ranked.find(x => x !== c); if (hype(c, t, 300)) { render(); window.Guide?.on("hyped"); } else toast("Not enough cash."); };
   }
   if (G.tab !== "city") {
     const f = document.createElement("div"); f.className = "card"; f.innerHTML = `<div class="h">Latest</div><div class="feed" style="max-height:150px">${G.feed.slice(0, 12).map(f => `<div class="${f.cls}"><time>${clockStr(f.t)}</time>${f.text}</div>`).join("")}</div>`; pane.appendChild(f);
@@ -758,21 +765,23 @@ function wakeScreen() {
     fresh.cash = dep + div; fresh.woke = G.t; fresh.lastCash = G.t; fresh.taxUntil = G.t + DAY; fresh.immuneUntil = G.t + DAY; fresh.seasonAppraisal = appraisal(fresh); fresh.plan = G.plan; fresh.autoTax = true;
     log(`You woke ${fresh.full}: deposited ${fmt(dep)} and claimed ${fmt(div)} Sleeping Chog Dividend. Heist-immune for 24h.`, "me");
     $("#wake").hidden = true; $("#lastev").textContent = "Press ROLL. Your plan buys Bricks where you land.";
-    render(); toast("Your Chog is awake. Press ROLL.");
+    render(); window.Guide?.on("woke");
   };
 }
 
 document.addEventListener("click", e => {
-  if (e.target.closest("[data-close]")) { closeSheet(); return; }
+  if (e.target.closest("[data-close]")) { closeSheet(); window.Guide?.on("sheetClosed"); return; }
   const q = e.target.closest("[data-quest]"); if (q) return doQuest(+q.dataset.quest);
   const s = e.target.closest("[data-sell]"); if (s) { const p = SQ[+s.dataset.sell]; const got = sellBricks(G.me, p, +s.dataset.n); log(`Sold a Brick on ${p.name} for ${fmt(got)} (stays in your Chog).`, "me"); openTile(p.i, false); render(); return; }
   const h = e.target.closest("[data-heist]"); if (h) { const t = byId(+h.dataset.heist); const r = heist(G.me, t); closeSheet(); toast(r.win ? `Heist worked: +${fmt(r.amt)} from ${t.name}.` : `Caught! You paid ${fmt(r.amt)} to ${t.name} and went to Rug Jail.`); render(); return; }
 });
-document.querySelectorAll(".plans button").forEach(b => b.onclick = () => { G.plan = b.dataset.plan; if (G.me) G.me.plan = G.plan; render(); });
-document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { G.tab = b.dataset.tab; document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b))); renderPane(); });
+document.querySelectorAll(".plans button").forEach(b => b.onclick = () => { G.plan = b.dataset.plan; if (G.me) G.me.plan = G.plan; render(); window.Guide?.on("plan", G.plan); });
+function setTab(t) { G.tab = t; document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x.dataset.tab === t))); renderPane(); }
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { setTab(b.dataset.tab); window.Guide?.on("tab", b.dataset.tab); });
+$("#bail").onclick = () => { const c = G.me; if (!c || !c.jail) return; if (c.cash < K.bail) return toast("Not enough cash for bail."); payTo(c, K.bail / 2, "burn"); payTo(c, K.bail / 2, "lounge"); c.jail = 0; log("You paid 500 bail (half burned, half to the Nad Lounge).", "me"); render(); window.Guide?.on("bail"); };
 $("#roll").onclick = rollMe;
-$("#ff1").onclick = () => { advance(2 * HOUR); render(); };
-$("#ffd").onclick = () => { advance(DAY); render(); };
+$("#ff1").onclick = () => { advance(2 * HOUR); render(); window.Guide?.on("ff"); };
+$("#ffd").onclick = () => { advance(DAY); render(); window.Guide?.on("ff"); };
 const SPEEDS = [0, 1, 4]; $("#speed").onclick = () => { G.speed = SPEEDS[(SPEEDS.indexOf(G.speed) + 1) % 3]; $("#speed").textContent = G.speed ? `Speed: ${G.speed}×` : "Paused"; };
 document.addEventListener("keydown", e => { if ((e.key === " " || e.key === "Enter") && document.activeElement === document.body && G.me) { e.preventDefault(); rollMe(); } });
 
