@@ -1,8 +1,8 @@
 # 010 — CHOGOPOLY: The City Where the Chogs Own the Land
 
-**Status:** Spec'd, prototype started · **Captured:** 2026-10-22 · **Supersedes:** [009 Chog City v3](009-chog-monopoly.md) (its best parts are folded in)
+**Status:** Spec'd (v2, refined with Stonkboard and Vault Street), prototype started · **Captured:** 2026-10-22 · **Supersedes:** [009 Chog City v3](009-chog-monopoly.md) (its best parts are folded in)
 **Target:** Chogathon 2026 · **Judging:** Novelty 30% · Fun 20% · Retention 20% · Clarity 15% · Execution 15% · plus a $CHOG bonus · **Gate:** the NFT must be essential
-**Research inputs:** [Chog Raid](../hackathons/2026-10-chogathon/sites/01-chog-raid.md) · [Fomopoly](../hackathons/2026-10-chogathon/sites/02-fomopoly.md) · [Daemon](../hackathons/2026-10-chogathon/sites/03-daemon.md) · [Hoodopoly](../hackathons/2026-10-chogathon/sites/04-hoodopoly.md) · [$MONO teardown](../hackathons/2026-10-chogathon/COMPETITOR-MONO.md)
+**Research inputs:** [Chog Raid](../hackathons/2026-10-chogathon/sites/01-chog-raid.md) · [Fomopoly](../hackathons/2026-10-chogathon/sites/02-fomopoly.md) · [Daemon](../hackathons/2026-10-chogathon/sites/03-daemon.md) · [Hoodopoly](../hackathons/2026-10-chogathon/sites/04-hoodopoly.md) (unreachable) · [Stonkboard](../hackathons/2026-10-chogathon/sites/05-stonkboard.md) · [Vault Street](../hackathons/2026-10-chogathon/sites/06-vault-street.md) · [$MONO teardown](../hackathons/2026-10-chogathon/COMPETITOR-MONO.md)
 **Practice City (playable sim):** [`prototypes/chogopoly/index.html`](../prototypes/chogopoly/index.html) · **Contracts:** [`prototypes/chogopoly/contracts/`](../prototypes/chogopoly/contracts/)
 
 > **Name note:** "Monopoly" is a Hasbro trademark. "Chogopoly" is a parody name. If we're challenged, fall back to *The Landlord's Game* (Lizzie Magie, 1904, public domain).
@@ -19,20 +19,23 @@
 **30-second pitch:**
 1. Wake your Chog: it gets a vault and a pawn on the board.
 2. Roll. Land on *Kuru Tower* and swap MON → $CHOG straight into your Chog. Land on *Magma Station* and stake MON for gMON. Land on *Perpl Pit* and pay rent to the Chogs that own it.
-3. Buy **Bricks** in the street you're standing on. Every Chog that later lands there pays your Chog rent.
+3. Your roll plan buys **Bricks** in the street you land on. Every Chog that later lands there pays your Chog rent.
 4. Your bricks can never leave the Chog. Selling the empire means selling the Chog.
 
 ---
 
-## 1. The five idea sources, and what each one gives us
+## 1. The five idea sources, and what each one teaches us
+**The rule we followed:** each source gives us one or two *lessons*, not a feature list. Anything that would only add complexity was left out (see §15 for what we rejected).
 
-| # | Source | The core idea we take | Where it lives in Chogopoly |
+| # | Source | The lesson we take | Where it lives in Chogopoly |
 |---|---|---|---|
-| 1 | **Chog Raid** (chog-raid.vercel.app) | The NFT *is* a place. Async defense while you're offline. A trait → rules table. Tier = difficulty and prestige. A daily featured room. Weekly seasons. Honest $CHOG pool. Receipt-verified payments | **Heist** square and **Guards** (§6.4) · trait perks (§7) · Daily Hot Street (§9) · seasons (§9) · proof-of-visit dapp quests (§5.3) |
-| 2 | **Fomopoly** (fomopoly.com) | Land plots that produce yield. **First and fast wins**: escalating prices. A city that visibly grows. A golden tycoon statue. Posting to earn a free mint | **Bricks** on bonding curves (§4) · buildings grow with the reserve (§10) · **Golden Chog** statue (§9) · **Closing Bell** last-buyer timer (§9) · Founder posts (§11) |
-| 3 | **Daemon** (trydaemon.vercel.app) | The Chog owns a wallet (ERC-6551). Approvals are forbidden so a sale is safe. Public keeper calls with a tip. A hype jar (10% of $CHOG burned). Moods. Pyth Entropy. Practice mode | **Chog Vault** (§3) · keepers settle rolls and run autopilot (§6.6) · **Hype a Chog** (§6.5) · moods (§8) · dice (§6.1) · Practice City |
-| 4 | **Hoodopoly** (hoodopoly.fun, the Robinhood-chain Monopoly wave) | A bright cartoon board with pawn select. **Tiles backed by real on-chain assets.** A Free Parking pot | **Every tile is a real Monad dapp** (§5) · Chog = pawn · **Nad Lounge** pot (§6.3) |
-| 5 | **Our own Chog City v3 plus $MONO** (009) | An async shared table with no turns. Fractional shares. Magie's Prosperity dividend (the Commons). Practice table. Margin pressure | No turns (§6.1) · Commons treasury pays the GO salary and Prosperity (§4.4) · Practice City · bankruptcy and auto-sell (§6.2) |
+| 1 | **Chog Raid** (chog-raid.vercel.app) | The NFT *is* a place that defends itself while you're offline. Traits change the rules through one table. The same daily featured thing for everyone | **Heist** and **Guards** (§6.4) · trait perks (§7) · Daily Hot Street (§9) · proof-of-visit receipts (§5.3) |
+| 2 | **Fomopoly** (fomopoly.com) | Land is the asset, and **first and fast wins**: escalating parcel costs. A city that visibly grows. A golden tycoon statue. Variable jackpots | **Bricks** on bonding curves (§4) · buildings grow (§10) · **Golden Chog** (§9) · **Closing Bell** (§9) |
+| 3 | **Daemon** (trydaemon.vercel.app) | The Chog owns a wallet, and **approvals are forbidden so a sale is safe**. Keepers run public calls for a tip. A hype jar that burns $CHOG | **Chog Vault** (§3) · keepers land rolls (§6.1) · **Hype a Chog** (§6.5) · moods (§8) |
+| 4 | **Stonkboard** (stonkboard.online) | **The roll commits a plan and anyone can land it.** GO pays % of what you own, from surplus only. The bank always pays. A per-player property cap | Roll plans (§6.1) · Genesis Dividend (§4.4) · solvency invariant (§4.3) · the 40% per-Chog cap (§6.2) |
+| 5 | **Vault Street** (vaultstreet.fun) | **Claim tax plus a streak reset proves the withdrawal design.** Upkeep stops earning but loses nothing. Robbers only take *unclaimed* rewards. **The NFT gets a revenue share** | Daily cash-out cap (§3.2) · **Property Tax** (§4.2) · Heist on unclaimed rent (§6.4) · **Sleeping Chog Dividend** (§4.4) |
+| base | **Our Chog City v3, plus $MONO** (009) | An async shared table. Fractional shares. Magie's Prosperity dividend. A practice table | The whole skeleton |
+| — | Hoodopoly (hoodopoly.fun) | The site was down. Only a fragment was recovered: a cartoon canvas board with pawn select | Toy-box art direction (§10) |
 
 **What's new:** none of the five has **property owned by the NFT, a board of real dapps, and a withdrawal design that keeps the value inside the NFT**. That combination is the novelty pitch.
 
@@ -45,7 +48,7 @@
 | **Squares interact with real Monad dapps, as many as possible** | **28 named dapp squares plus 8 dapp cards (36 dapps in all).** Tier A: the Chog's vault calls the dapp on-chain through a whitelisted adapter. Tier B: a proof-of-visit receipt (§5) |
 | **Properties belong to the Chog NFTs, not to users** | Bricks, stamps, Prestige and the vault are recorded **against the tokenId**. There's no transfer function. The only way to move an empire is to transfer the NFT |
 | **Properties drive the NFT's worth up** | The **Appraisal** (§3.3) is a public value per Chog. Bricks earn rent forever, Prestige raises its share of rent, and stamps and traits add multipliers. The marketplace price should follow the Appraisal |
-| **Make withdrawals restricted, diluted, not worthwhile** | Six layers (§3.2): bricks can never be withdrawn · 20% exit tax that pays the players who stay · a 48 h clearing queue · **cashing out resets Prestige** · a bank-run surcharge · a 72 h lock after a sale |
+| **Make withdrawals restricted, diluted, not worthwhile** | Six layers (§3.2): bricks can never be withdrawn · 20% exit tax that pays the players who stay · a 48 h clearing queue · **cashing out resets Prestige** · a global daily cash-out cap · a 72 h lock after a sale. **Dilution:** idle Bricks with unpaid Property Tax earn nothing, and their rent goes to the Commons (§4.2) |
 | **$CHOG powers the economy** | $CHOG is the unit of account for everything. MON enters only through dapp squares that **buy $CHOG**. Six burn sinks. **The game never mints anything** (§4) |
 
 ---
@@ -83,7 +86,7 @@
 | 2. **Exit tax 20%** on `cashOut()` | Split: **50% to the Commons** (the players who stay), **25% burned**, **25% to the season pot**. A **Loyalty** discount takes −1% per full week since the Chog last cashed out, down to a **10% floor** | Leaving pays the stayers. That's a dilution penalty for leavers and an anti-dilution bonus for holders |
 | 3. **A 48 h clearing queue** | `requestCashOut()` freezes the amount. It earns nothing and can't be used. After 48 h, `claimCashOut()` sends it | No bank-run sniping and no instant extract-and-dump |
 | 4. **Cashing out resets Prestige** | Prestige grows **+1% per day** without a cash-out, up to **+50%** rent weight. **Any** cash-out resets it to 0 | Prestige is a stat **of the Chog**, so a high-Prestige Chog is worth more. Cashing out destroys value in the NFT itself |
-| 5. **Bank-run surcharge** | If more than 5% of all game cash was cashed out in the last 24 h, the tax rises by +1% for every extra 1%, up to **+10%** | Stops a death spiral |
+| 5. **Global daily cap** (from Vault Street) | Cash-outs across all Chogs are capped at **2% of total game cash per UTC day**. Requests over the cap wait in line for the next day | Stops a death spiral. One clear rule |
 | 6. **Moving Day: a 72 h lock after a sale** | When a Chog changes owner, the new owner can't cash out for 72 h. **Prestige, bricks and stamps carry over in full** | Buyers price the Chog on its *in-game* value, not as cash to strip. A buy-strip-dump trade isn't worth it |
 
 **The holder's decision, worked through:** a Chog has 50k cash, 150k in bricks and +40% Prestige.
@@ -131,6 +134,7 @@ Appraisal = cash
 | Hype | any amount | **10% burned** · 90% to the Chog's jar |
 | Exit tax | 20% (10–30%) | 25% burned · 50% Commons · 25% season pot |
 | Gas and MEV tax squares | 5% of cash (max 1,000) / 750 | 100% Nad Lounge |
+| **Property Tax** (Magie's land-value tax, Vault Street's upkeep) | **0.5% of Brick value per day**, prepaid up to 3 days | 100% Commons. **Unpaid Bricks earn no rent (it goes to the Commons), but they are never lost** |
 
 ### 4.3 Rent (the main flow)
 - **Rent = base[colour] × buildingLevel multiplier × Hot Street (×2 if today's)**.
@@ -141,8 +145,9 @@ Appraisal = cash
 - **A pull-based accumulator:** `rentPerBrick` grows, and holders claim any time. It's O(1) gas.
 - **Claim multipliers:** Prestige, stamps, traits, mood and hype.
   - **The base share comes from the rent pool. The bonus above 1× is paid by the Commons** (or by the hype jar for hype), capped at what it holds.
-  - A Tired Chog's forfeited 25% goes **to** the Commons.
+  - Rent earned by Bricks with unpaid Property Tax goes **to** the Commons.
   - ⇒ **Bonuses are never minted.** The contract invariant is: the sum of all claimable amounts ≤ the $CHOG balance held.
+- **The bank always pays** (from Stonkboard): the curve reserves always cover selling every Brick back. The Commons pays bonuses, dividends and cards **only from its surplus**, and never dips into money it owes.
 
 ### 4.4 The Commons (Magie's 1904 Prosperity rule)
 - **Funded by:**
@@ -150,9 +155,13 @@ Appraisal = cash
   - buy fees and sell spreads;
   - 50% of the exit tax;
   - guards;
-  - Tired forfeits.
+  - Property Tax, and the rent from untaxed Bricks.
 - **Pays out:**
-  - **The GO salary ("Genesis Dividend"):** 200, or 0.05% of the Commons, whichever is smaller, every time a Chog passes GO.
+  - **The Sleeping Chog Dividend** (from Vault Street's NFT revenue share): **10% of everything flowing into the Commons accrues equally to all 1,969 Chog tokenIds, woken or not.**
+    - Every Deed Card shows it: "this Chog has 3,240 $CHOG waiting".
+    - **Claiming means waking the Chog.** The dividend lands as its starting cash.
+    - It lifts the floor of the whole collection and pulls holders into the game.
+  - **The GO salary ("Genesis Dividend"):** **1% of the Chog's Brick value, capped at 500**, every time it passes GO, from surplus only (Stonkboard). Own nothing, earn nothing, so owning land makes the Chog itself earn.
   - Commons Chest cards.
   - Claim bonuses.
   - **50% of the Commons at season end, split equally among every Chog that made ≥ 20 rolls** (Prosperity).
@@ -240,21 +249,33 @@ Appraisal = cash
 
 ### 6.1 Rolling (an async shared table with no turns)
 **Roll energy:**
-- 1 roll every 2 h, storing up to 6 (Uncommon and rarer: 7).
+- **+1 roll every 30 min, storing up to 8** (Uncommon and rarer: 9). Stonkboard showed that fast energy is what makes a session fun.
 - **Extra rolls cost 100 $CHOG**, at most 10 a day.
+
+**Every roll commits a plan (from Stonkboard).** The owner sets it once, and it's stored in the Chog:
+
+| Plan | Behaviour |
+|---|---|
+| **Safe** | Buys Bricks only on streets up to building level 1, keeps 50% of cash in reserve |
+| **Balanced** | Buys up to N Bricks anywhere, keeps 25% |
+| **Degen** | Buys as much as it can, keeps 0% |
+| **Custom** | `maxSpend`, `maxBricks` and `keepCash` |
+
+- **Why:** the plan is fixed before the dice exist, so the whole landing resolves in **one settle**, and **anyone can land it**. You can't stall on a bad roll, and nobody can snipe.
 
 **The dice:**
 - 2d6. Doubles roll again; three doubles send you to Rug Jail.
 - **Randomness, two steps:**
-  1. `roll(tokenId)` commits at block *b*.
+  1. `roll(tokenId)` commits at block *b*, along with the Chog's current plan.
   2. `settle(tokenId)` is callable by **anyone** from *b+2*. The seed is `keccak(blockhash(b+1), tokenId, nonce)`, mixed with the latest **Pyth Entropy epoch seed** when there is one.
 - **The dapp does both steps for you.** Keepers settle anyone else's pending rolls for a 5 $CHOG tip.
 - **Why:** Monad blocks are about 400 ms, so it still feels instant. Per-roll Entropy fees on mainnet are too high (a forum thread reports a fee of 40 MON), so we use **one Entropy request per epoch** to harden the seed.
 
-**Landing resolves inside `settle()`:** move, pass GO, pay rent, cards, taxes, jail.
+**Landing resolves inside `settle()`:** move, pass GO, pay rent, cards, taxes, jail, **and buy Bricks according to the plan.**
 
 ### 6.2 Buying land, rent, and going broke
-- **You can only buy Bricks in the street you're standing on** (until your next roll). That's Fomopoly's FOMO plus dice that matter, and it rate-limits whales.
+- **You can only buy Bricks where you land, through the roll's plan.** That's Fomopoly's FOMO plus dice that matter, and it rate-limits whales.
+- **Cap: one Chog can hold at most 40% of a property's Bricks** (Stonkboard's per-player cap, applied per Chog). Ownership spreads across more Chogs, so more NFTs carry value. A whale with 10 Chogs has to *play* 10 Chogs.
 - **You can sell Bricks anywhere, any time**, back to the curve (5% spread). The proceeds go to cash.
 - **Rent you can't afford:**
   1. The Chog's Bricks auto-sell, cheapest first, until the rent is covered.
@@ -266,19 +287,19 @@ Appraisal = cash
 |---|---|
 | **GENESIS** | Genesis Dividend from the Commons |
 | **Rug Jail** | Get out by rolling doubles (3 tries), paying 500 bail, or with a "Get out of Rug Jail" card. **Inmate and Prisoner** trait Chogs need 1 fewer try ("they know the place") |
-| **Nad Lounge** | **Take the whole pot.** It's the FOMO jackpot of the board |
+| **Nad Lounge** | **Win 25% of the pot.** It's a variable jackpot that never empties (Stonkboard: 5% of spare cash). Taxes keep refilling it |
 | **Got Rugged** | Go to Rug Jail without passing GO |
 | **Gas / MEV Tax** | Paid into the Nad Lounge pot |
 
 ### 6.4 Heist (Chog Raid's async defense, simplified)
-**Landing on #33:** pick any target Chog with more than 1,000 cash.
+**Landing on #33:** pick any target Chog with at least 500 unclaimed rent. **Newly woken Chogs are immune for 24 h** (Vault Street's Grand Opening).
 
 | | Formula |
 |---|---|
 | **Success chance** | 55% + raider bonuses − target defense, clamped to 10–80% |
 | Raider bonuses (traits) | Laser eyes +5%, heist hat (Robber/Mafia) +5%, knife +5% |
 | Target defense | Tier (Common 0 / Uncommon 5 / Rare 10 / Epic 15 / Legendary 20%) + **Guards** (each 500 $CHOG, +5%, max 4; one wears off each season) |
-| **Success** | Steal min(5% of the target's cash, 2,000) |
+| **Success** | Steal **10% of the target's *unclaimed rent*** (Vault Street: robbers only take unclaimed rewards). Cash and Bricks are never at risk. **Claiming into the Chog protects you** |
 | **Failure** | The raider pays a **500 fine to the target** (Warden income), the target earns **Warden points**, and the raider goes to Rug Jail |
 
 - The target gets an **alert**: "Chog #812 tried to rob you. Your guards held. +500."
@@ -290,12 +311,10 @@ Appraisal = cash
 - Cooldowns: 1 h per hyper, 5 min per Chog.
 - **Why it matters:** a social loop. Friends, KOLs and DAOs can sponsor "their" Chog.
 
-### 6.6 Autopilot and keepers (from Daemon)
-- **Opt-in autopilot:** the owner sets a policy:
-  - keep a minimum cash reserve;
-  - buy at most N Bricks per landing, only up to building level L;
-  - never Heist, never take quests.
-- **Anyone** can call `autoPlay(tokenId)` to use a stored roll. They earn a **5 $CHOG tip from the Chog's cash.**
+### 6.6 Autopilot and keepers (from Daemon, simplified by Stonkboard)
+- **Autopilot is just the roll plan plus a switch.** With autopilot on, **anyone** can call `autoPlay(tokenId)` to use a stored roll with the saved plan. They earn a **5 $CHOG tip from the Chog's cash.**
+- Autopilot also **prepays Property Tax** from cash.
+- It never takes Heists or dapp quests, because those need the owner.
 - **Result:** absent holders survive, but active players do better (quests, Heists, timing).
 
 ---
@@ -325,7 +344,7 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 | **Flexing** | Hyped and income up | Sparkles |
 | **Chaotic** | Income swung by more than 2× | Wobble |
 | **Smug** | Income ≥ last week | "Rent's in. As expected." |
-| **Tired** | No roll, claim or quest for 3 days | **Claims ×0.75**, with the forfeit going to the Commons. A hype or any action wakes it |
+| **Tired** | Property Tax unpaid, or no action for 3 days | Cosmetic: the pawn yawns. The real cost is Property Tax (§4.2). A hype or any action wakes it |
 | **Broke** | Cash at 0 and in jail | The barrel-and-braces pawn |
 
 ---
@@ -333,11 +352,12 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 ## 9. Retention: why people come back
 | Loop | Cadence | Source |
 |---|---|---|
-| Roll energy refills every 2 h (cap 6) | Several times a day | Chog City |
+| Roll energy +1 every 30 min (cap 8) | Several sessions a day | Stonkboard |
+| **Property Tax is prepaid at most 3 days ahead** | Every ≤ 3 days | Vault Street |
 | **A free roll for every dapp quest**, once per square per day | Daily | New |
 | **Daily Hot Street:** rent ×2 on one street (hash of the UTC date, the same for everyone) | Daily | Chog Raid |
 | Prestige +1% a day, which you lose by cashing out | Daily, compounding | New |
-| Tired after 3 days idle | Every 3 days | Daemon |
+| **The Sleeping Chog Dividend grows on every Deed Card** ("wake me") | Always | Vault Street |
 | Heist alerts, plus a "buy a guard?" nudge | When it happens | Chog Raid |
 | **Seasons: 7 days, Monday 00:00 UTC.** The city is **persistent**; only leaderboards and the pot reset | Weekly | Chog Raid |
 | **The Closing Bell (Fomo3D):** in the last 24 h of a season, each Brick buy adds 60 s to a timer. At zero, **the last buyer wins 10% of the season pot** | Weekly climax | Fomopoly |
@@ -386,10 +406,12 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 |---|---|
 | Strip the cash, then dump the NFT | §3.2: taxes, queue, Prestige reset, Moving Day. Bricks can't be withdrawn at all |
 | Wash rent between your own Chogs | 10% to the Commons plus the 3% buy fee and 5% sell spread make it a loss |
-| Sniping Bricks just before a big landing | You can only buy where you stand, and landing and rent resolve atomically in `settle()` |
+| Sniping Bricks just before a big landing | You can only buy through a roll plan committed before the dice. Landing, rent and buying resolve atomically in `settle()` |
+| One whale buys a whole street | The 40% per-Chog cap |
+| Stalling on a bad roll | Anyone can land a committed roll (Stonkboard) |
 | Grinding the dice | Commit → future blockhash → Entropy epoch mix. Low stakes per roll |
 | Farming Heists against your own wallets | Same-owner Heists are blocked. Warden points need distinct owners. Thresholds borrowed from Chog Raid |
-| A bank run | 48 h queue and the surcharge |
+| A bank run | 48 h queue and the global daily cap |
 | Approval left behind after a sale | Approval selectors are forbidden in the vault (Daemon) |
 | Spoofed quests | Tier A is atomic. Tier B uses a signed voucher plus a used-txHash registry, a 24 h window, and the wallet must be the Chog's owner at the time |
 | Bonus multipliers creating money | Bonuses are paid by the Commons or the jar, capped by their balances. Invariant tests |
@@ -400,14 +422,15 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 **Must have:**
 1. **Practice City**, a playable single-file sim (`prototypes/chogopoly/index.html`):
    - The 40-square board, your Chog plus bots.
-   - Bricks, rent and the Commons.
-   - Nad Lounge, Rug Jail, Heist and Hype.
+   - Roll plans (Safe / Balanced / Degen), Bricks with the 40% cap, rent, the Commons.
+   - Property Tax and the Sleeping Chog Dividend.
+   - Nad Lounge, Rug Jail, Heist (unclaimed rent) and Hype.
    - **The cash-out panel with the tax, the queue and the Prestige reset.**
    - Dapp quests (simulated, with a "Do it for real" link).
    - The Appraisal.
    - The season and the Closing Bell.
 2. **Contracts** (`prototypes/chogopoly/contracts/`):
-   - `Chogopoly.sol`: rolls, settle, movement, Brick curves, rent accumulator, pots, cash-out (tax, queue, Prestige, Moving Day), hype.
+   - `Chogopoly.sol`: rolls with committed plans, settle (anyone), movement, Brick curves with the per-Chog cap, rent accumulator, Property Tax, pots, Sleeping Chog Dividend, cash-out (tax, queue, Prestige, daily cap, Moving Day), hype.
    - Mocks for $CHOG and the Chog NFT.
    - Tests for the economy invariants.
 3. **The demo video:** wake → roll → land on Kuru Tower (swap MON→$CHOG into the Chog) → buy Bricks → bot lands, RENT! → try to cash out (show the 20% and the Prestige loss) → sell the Chog on the marketplace instead.
@@ -426,3 +449,28 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 4. **Tuning:** exit tax, Prestige rate, rent bases and curve slopes. Tune them in the sim first.
 5. **Optics:** call it a strategy game, never a "Ponzi" (unlike Fomopoly). Keep stakes small and make Practice City the default.
 6. **Hoodopoly:** the site was down. Re-check it and update the sources table.
+
+---
+
+## 15. Changelog v2: what Stonkboard and Vault Street taught us
+**Adopted.** Each one *replaces* or tightens something that was already here, so the game got simpler:
+1. **Roll plans plus anyone-can-land** replace the "stand and buy" window, and they merge autopilot into one feature.
+2. **The Genesis Dividend is 1% of the Chog's Bricks**, from surplus only. That replaces a flat salary.
+3. **Bank-always-pays solvency rule.**
+4. **The 40% per-Chog Brick cap.**
+5. **Faster energy:** 30 min per roll, store 8.
+6. **Property Tax** replaces the Tired claim penalty. It's the dilution lever for absent holders.
+7. **The Heist steals unclaimed rent only.** Newly woken Chogs are immune for 24 h.
+8. **A global daily cash-out cap** replaces the bank-run surcharge formula.
+9. **The Sleeping Chog Dividend:** NFT revenue share for all 1,969 Chogs, and the onboarding hook.
+10. **The Nad Lounge pays 25%** of its pot.
+
+**Rejected, on purpose, so the game doesn't get jampacked:**
+- **Hostile takeovers, shields and rent spikes** (Stonkboard). They need single-owner deeds, and Bricks plus the Heist already cover PvP.
+- **NFT fusion** (Vault Street). We won't burn Chogs.
+- **Emission pools** (Vault Street). We mint nothing.
+- **drand** (no Monad verifier yet).
+- **Price-linked rent.**
+- **ETH-bought treasuries.**
+- **Build timers** (maybe later).
+

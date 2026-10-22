@@ -24,6 +24,9 @@
 | "The most FOMOmaxxed onchain Ponzi on Robinhood. **Buy & sell land plots, earn stocks, farm $DEAL. If you're first and you're fast, you win.**" | X post, Oct 19 |
 | "This city is built for FOMO. Enter accordingly." / "First came the land plots. Then came the deals." / "The lights turn on, the city wakes up. And then the FOMOniacal part begins." | X posts, Oct 1–7 |
 | About 6.9k followers, and 25–54k views per video post | X |
+| "**Tokenized Real Estate:** Acquire strategic land plots, generate **company stocks and $DEAL tokens**, and **enforce algorithmic rent on incoming players**" | A community write-up shared by the team, Oct 22 |
+| "**Dynamic Escalation:** built-in FOMO mechanics, **escalating parcel costs**, and **variable jackpot pools** ensure every roll shifts the board's liquidity balance" | Same write-up. ⇒ **there are dice** ("every roll"), so it's a board game, not only an idle city |
+| RareList "proof-of-work" contributors compete for a 2,000 USDT pool and priority $DEAL airdrops | Same write-up |
 | A RareList campaign: a $2k pool, 50 free mints, a $DEAL airdrop | KuCoin posts |
 
 ## 2. The whitelist funnel (what the site actually does)
