@@ -1,6 +1,6 @@
 # 010 — CHOGOPOLY: The City Where the Chogs Own the Land
 
-**Status:** Spec'd (v3, refined with Stonkboard, Vault Street and Upland; zero-budget), prototype started · **Captured:** 2026-10-22 · **Supersedes:** [009 Chog City v3](009-chog-monopoly.md) (its best parts are folded in)
+**Status:** Built: Practice City UI + contracts with tests (v3, zero-budget), prototype started · **Captured:** 2026-10-22 · **Supersedes:** [009 Chog City v3](009-chog-monopoly.md) (its best parts are folded in)
 **Target:** Chogathon 2026 · **Judging:** Novelty 30% · Fun 20% · Retention 20% · Clarity 15% · Execution 15% · plus a $CHOG bonus · **Gate:** the NFT must be essential
 **Research inputs:** [Chog Raid](../hackathons/2026-10-chogathon/sites/01-chog-raid.md) · [Fomopoly](../hackathons/2026-10-chogathon/sites/02-fomopoly.md) · [Daemon](../hackathons/2026-10-chogathon/sites/03-daemon.md) · [Hoodopoly](../hackathons/2026-10-chogathon/sites/04-hoodopoly.md) (unreachable) · [Stonkboard](../hackathons/2026-10-chogathon/sites/05-stonkboard.md) · [Vault Street](../hackathons/2026-10-chogathon/sites/06-vault-street.md) · [Upland](../hackathons/2026-10-chogathon/sites/07-upland.md) · [$MONO teardown](../hackathons/2026-10-chogathon/COMPETITOR-MONO.md)
 **Practice City (playable sim):** [`prototypes/chogopoly/index.html`](../prototypes/chogopoly/index.html) · **Contracts:** [`prototypes/chogopoly/contracts/`](../prototypes/chogopoly/contracts/)
@@ -167,6 +167,7 @@ Appraisal = cash
   - 50% of the exit tax;
   - guards;
   - Property Tax, and the rent from untaxed Bricks.
+- **How inflow is routed (as built):** every $CHOG entering the Commons splits **80% Commons, 10% Sleeping Chog Dividend, 10% season pot.** The season pot also gets 25% of every exit tax.
 - **Pays out:**
   - **The Sleeping Chog Dividend** (from Vault Street's NFT revenue share): **10% of everything flowing into the Commons accrues equally to all 1,969 Chog tokenIds, woken or not.**
     - Every Deed Card shows it: "this Chog has 3,240 $CHOG waiting".
