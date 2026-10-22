@@ -1,8 +1,8 @@
 # 010 — CHOGOPOLY: The City Where the Chogs Own the Land
 
-**Status:** Spec'd (v2, refined with Stonkboard and Vault Street), prototype started · **Captured:** 2026-10-22 · **Supersedes:** [009 Chog City v3](009-chog-monopoly.md) (its best parts are folded in)
+**Status:** Spec'd (v3, refined with Stonkboard, Vault Street and Upland; zero-budget), prototype started · **Captured:** 2026-10-22 · **Supersedes:** [009 Chog City v3](009-chog-monopoly.md) (its best parts are folded in)
 **Target:** Chogathon 2026 · **Judging:** Novelty 30% · Fun 20% · Retention 20% · Clarity 15% · Execution 15% · plus a $CHOG bonus · **Gate:** the NFT must be essential
-**Research inputs:** [Chog Raid](../hackathons/2026-10-chogathon/sites/01-chog-raid.md) · [Fomopoly](../hackathons/2026-10-chogathon/sites/02-fomopoly.md) · [Daemon](../hackathons/2026-10-chogathon/sites/03-daemon.md) · [Hoodopoly](../hackathons/2026-10-chogathon/sites/04-hoodopoly.md) (unreachable) · [Stonkboard](../hackathons/2026-10-chogathon/sites/05-stonkboard.md) · [Vault Street](../hackathons/2026-10-chogathon/sites/06-vault-street.md) · [$MONO teardown](../hackathons/2026-10-chogathon/COMPETITOR-MONO.md)
+**Research inputs:** [Chog Raid](../hackathons/2026-10-chogathon/sites/01-chog-raid.md) · [Fomopoly](../hackathons/2026-10-chogathon/sites/02-fomopoly.md) · [Daemon](../hackathons/2026-10-chogathon/sites/03-daemon.md) · [Hoodopoly](../hackathons/2026-10-chogathon/sites/04-hoodopoly.md) (unreachable) · [Stonkboard](../hackathons/2026-10-chogathon/sites/05-stonkboard.md) · [Vault Street](../hackathons/2026-10-chogathon/sites/06-vault-street.md) · [Upland](../hackathons/2026-10-chogathon/sites/07-upland.md) · [$MONO teardown](../hackathons/2026-10-chogathon/COMPETITOR-MONO.md)
 **Practice City (playable sim):** [`prototypes/chogopoly/index.html`](../prototypes/chogopoly/index.html) · **Contracts:** [`prototypes/chogopoly/contracts/`](../prototypes/chogopoly/contracts/)
 
 > **Name note:** "Monopoly" is a Hasbro trademark. "Chogopoly" is a parody name. If we're challenged, fall back to *The Landlord's Game* (Lizzie Magie, 1904, public domain).
@@ -24,6 +24,15 @@
 
 ---
 
+## 0.5 Ground rules (we have no budget)
+1. **Zero-sum at the core.**
+   - Every $CHOG a Chog earns was paid by another Chog: rent, a Heist, a tax, an exit tax.
+   - Or it was given by a fan (hype).
+   - Or it came from the Commons *surplus*, which is itself funded only by those flows.
+   - **There are no emissions, no team-funded pools, and we never quote an APY.** Upland had to cut its pool-funded yield from 17.3% to 4.9%; we never make a promise that needs outside money.
+2. **Every feature must move $CHOG through rent and Bricks, or it doesn't ship.** That's the written test against jampacking: Upland's side features that didn't feed the core loop are what dragged its engagement down.
+3. **Everything that would need money waits for after the win** (§16).
+
 ## 1. The five idea sources, and what each one teaches us
 **The rule we followed:** each source gives us one or two *lessons*, not a feature list. Anything that would only add complexity was left out (see §15 for what we rejected).
 
@@ -34,6 +43,7 @@
 | 3 | **Daemon** (trydaemon.vercel.app) | The Chog owns a wallet, and **approvals are forbidden so a sale is safe**. Keepers run public calls for a tip. A hype jar that burns $CHOG | **Chog Vault** (§3) · keepers land rolls (§6.1) · **Hype a Chog** (§6.5) · moods (§8) |
 | 4 | **Stonkboard** (stonkboard.online) | **The roll commits a plan and anyone can land it.** GO pays % of what you own, from surplus only. The bank always pays. A per-player property cap | Roll plans (§6.1) · Genesis Dividend (§4.4) · solvency invariant (§4.3) · the 40% per-Chog cap (§6.2) |
 | 5 | **Vault Street** (vaultstreet.fun) | **Claim tax plus a streak reset proves the withdrawal design.** Upkeep stops earning but loses nothing. Robbers only take *unclaimed* rewards. **The NFT gets a revenue share** | Daily cash-out cap (§3.2) · **Property Tax** (§4.2) · Heist on unclaimed rent (§6.4) · **Sleeping Chog Dividend** (§4.4) |
+| check | **Upland** (play.upland.me) | **Yield paid from a pool ends in cuts** (17.3% → 4.9%). Assets bound to land. Holding periods before bonuses. Newcomer-reserved land. Side features that skip the core loop kill engagement | The zero-sum core (§0.5) · Fair Start streets (§6.2) · 7-day hold on district bonuses (§5.3) · no cash transfers between Chogs (§3.1) |
 | base | **Our Chog City v3, plus $MONO** (009) | An async shared table. Fractional shares. Magie's Prosperity dividend. A practice table | The whole skeleton |
 | — | Hoodopoly (hoodopoly.fun) | The site was down. Only a fragment was recovered: a cartoon canvas board with pawn select | Toy-box art direction (§10) |
 
@@ -49,6 +59,7 @@
 | **Properties belong to the Chog NFTs, not to users** | Bricks, stamps, Prestige and the vault are recorded **against the tokenId**. There's no transfer function. The only way to move an empire is to transfer the NFT |
 | **Properties drive the NFT's worth up** | The **Appraisal** (§3.3) is a public value per Chog. Bricks earn rent forever, Prestige raises its share of rent, and stamps and traits add multipliers. The marketplace price should follow the Appraisal |
 | **Make withdrawals restricted, diluted, not worthwhile** | Six layers (§3.2): bricks can never be withdrawn · 20% exit tax that pays the players who stay · a 48 h clearing queue · **cashing out resets Prestige** · a global daily cash-out cap · a 72 h lock after a sale. **Dilution:** idle Bricks with unpaid Property Tax earn nothing, and their rent goes to the Commons (§4.2) |
+| **Zero-sum, because we have no money to fund it** | §0.5. Everything is paid by players to players, and every bonus is capped by the Commons surplus. **The Sleeping Chog Dividend** replaces a funded airdrop |
 | **$CHOG powers the economy** | $CHOG is the unit of account for everything. MON enters only through dapp squares that **buy $CHOG**. Six burn sinks. **The game never mints anything** (§4) |
 
 ---
@@ -64,7 +75,7 @@
 
 | Asset | Where it's recorded | Can it leave? |
 |---|---|---|
-| **Cash** ($CHOG) | The game ledger, keyed by tokenId | Only through `cashOut()` (taxed and queued) |
+| **Cash** ($CHOG) | The game ledger, keyed by tokenId | Only through `cashOut()` (taxed and queued). **There's no Chog-to-Chog transfer** (Upland's lesson): cash moves between Chogs only through game actions, so you can't merge Chogs or dodge the tax |
 | **Bricks** (shares of properties) | The game ledger, keyed by (property, tokenId) | **Never.** You can only sell them back to the curve, and the proceeds go to cash |
 | **Dapp positions** (shMON, gMON, vault shares, tokens bought on nad.fun) | Inside the Chog Vault (6551) | Locked 7 days after the quest, then through `cashOut()` |
 | **Stamps, Prestige, Warden points, history** | The game ledger | Never. They are the Chog's story |
@@ -121,7 +132,7 @@ Appraisal = cash
 1. **Waking deposits** (at least 10k) and top-ups.
 2. **Dapp squares that buy $CHOG.** *Chog Alley* (the nad.fun pool) and *Kuru Tower* (Kuru) swap the player's MON → $CHOG **straight into the Chog's cash**. Every swap is market buy pressure.
 3. **Hype** from fans.
-4. **The season sponsor pot** (team or partners, optional, and shown honestly the way Chog Raid does).
+4. *(After the win: sponsor top-ups to the season pot. For the MVP, the pot is funded only by in-game flows.)*
 
 ### 4.2 Where it goes out (sinks)
 | Sink | Rate | Split |
@@ -237,7 +248,7 @@ Appraisal = cash
 
 **Quest rewards:**
 - **First completion:** a permanent **Patron Stamp** for that dapp in the Chog's Passport, worth **+1% claim weight each** (up to +28%).
-- **Full district** (every stamp in a colour): **+5%** more, plus a district title on the Deed Card ("Perps Baron").
+- **Full district** (every stamp in a colour): **+5%** more, plus a district title on the Deed Card ("Perps Baron"). **The bonus only starts after the stamps have been held for 7 days** (Upland's collection holding period), so flipping a Chog to farm sets doesn't work.
 - **Once per UTC day per square: +1 free roll.** This is the engine that brings people back to Monad dapps every day.
 - **Stamps belong to the Chog.** A Chog with 28 stamps is a collector's item.
 
@@ -275,6 +286,7 @@ Appraisal = cash
 
 ### 6.2 Buying land, rent, and going broke
 - **You can only buy Bricks where you land, through the roll's plan.** That's Fomopoly's FOMO plus dice that matter, and it rate-limits whales.
+- **Fair Start streets** (Upland's FSA): the two Brown streets (nad.fun Lane, Chog Alley) only sell Bricks to Chogs with an **Appraisal under 50k $CHOG**. Newcomers always have an affordable way in. It costs the game nothing.
 - **Cap: one Chog can hold at most 40% of a property's Bricks** (Stonkboard's per-player cap, applied per Chog). Ownership spreads across more Chogs, so more NFTs carry value. A whale with 10 Chogs has to *play* 10 Chogs.
 - **You can sell Bricks anywhere, any time**, back to the curve (5% spread). The proceeds go to cash.
 - **Rent you can't afford:**
@@ -395,9 +407,9 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 
 ## 11. Go-to-market (hackathon plus after)
 - **Practice City** (no wallet, bots, fast-forward) is the judge path, like Daemon's practice mode.
-- **Founder posts (Fomopoly-style):** the first 500 woken Chogs that post their Deed Card with a code get a 2,000 $CHOG starter top-up from a **funded, on-chain-visible** launch pool. If it's unfunded, say so.
+- **Share cards (free):** every Deed Card exports a share image with the Chog's Appraisal and its **waiting Sleeping Chog Dividend** ("Chog #561 has 3,240 $CHOG waiting, wake it"). That's the viral hook, and it costs nothing.
 - **Rent-a-Chog (stretch, from 009):** holders who won't play can delegate their Chog to a player for a revenue split (owner 30%). Players without a Chog get in, and demand for Chogs goes up.
-- **Dapp partners:** each square is a free billboard. Partners can **sponsor their square's Hot Street days** or fund the season pot.
+- **Dapp partners (after the win):** each square is a free billboard. Partners could later sponsor Hot Street days or top up the season pot (§16).
 
 ---
 
@@ -473,4 +485,27 @@ These use the real trait values from Chog Genesis (taken from Chog Raid's `trait
 - **Price-linked rent.**
 - **ETH-bought treasuries.**
 - **Build timers** (maybe later).
+
+**v3 (Upland, zero budget).** Each change is small:
+- **Ground rules (§0.5):** zero-sum core, a no-APY rule, and the "every feature feeds rent and Bricks" test.
+- **Fair Start streets** (Brown is for Chogs under 50k Appraisal).
+- **A 7-day hold before district bonuses.**
+- **No Chog-to-Chog cash transfers.**
+- **Funded things moved out of the MVP:** the Founder starter pool and sponsor pots. They're replaced by free share cards and the Sleeping Chog Dividend.
+- **Rejected from Upland:**
+  - status-scaled cash-out holds (they favour whales);
+  - a pegged currency ($CHOG stays real);
+  - recycling idle accounts (we never take a Chog);
+  - treasure hunts, racing and shops (side features).
+
+## 16. Perks to add after the win (only once there's money or partners)
+These are kept out of the MVP on purpose. Each one is an *add-on* to a zero-sum game that already works:
+1. **Founder starter cash:** a funded pool, visible on-chain, for the first 500 Chogs that wake up.
+2. **Sponsored season pots** from Monad dapp partners, who "buy" their square's Hot Street days.
+3. **Dapp-partner quest rewards:** partners pay a bonus for real usage of their app from the board.
+4. **More real Tier-A adapters,** after an audit of the vault and adapters.
+5. **Rent-a-Chog delegation markets.**
+6. **Governance for Chog holders:** pick the dapp list and the Hot Street calendar (Vault Street's NFT votes).
+7. **Building timers and animations** (anticipation hooks).
+8. **A mobile app with sign-in by email** (Privy, like Daemon).
 
